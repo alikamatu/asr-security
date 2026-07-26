@@ -33,6 +33,10 @@ const GoodsEntrySchema = new Schema(
     storesPersonName: { type: String },
     securityOfficer: { type: String, required: true },
     signature: { type: String },
+    status: { type: String, enum: ['Recorded', 'Approved'], default: 'Recorded' },
+    approvedBy: { type: String },
+    approvedAt: { type: Date },
+    approvalSignature: { type: String },
     createdBy: { type: String, required: true },
   },
   { timestamps: true }

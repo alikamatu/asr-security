@@ -149,6 +149,7 @@ export function truncate(str: string, length: number): string {
 
 // ---------- Departments ----------
 export const DEPARTMENTS = [
+  'Stores',
   'Front Office',
   'Housekeeping',
   'Food & Beverage',
@@ -160,7 +161,6 @@ export const DEPARTMENTS = [
   'HR',
   'IT',
   'Guest Relations',
-  'Procurement',
   'Spa & Wellness',
   'Activities',
   'Transport',

@@ -2,7 +2,7 @@
 
 import { useAuth } from '@/lib/auth-context';
 import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import Sidebar from '@/components/ui/Sidebar';
 import Header from '@/components/ui/Header';
 import { Loader2 } from 'lucide-react';
@@ -14,6 +14,7 @@ export default function DashboardLayout({
 }) {
   const { user, loading, isAuthenticated } = useAuth();
   const router = useRouter();
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   useEffect(() => {
     if (!loading && !isAuthenticated) {
@@ -52,8 +53,8 @@ export default function DashboardLayout({
 
   return (
     <div>
-      <Sidebar />
-      <Header />
+      <Sidebar isOpen={isSidebarOpen} />
+      <Header onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} />
       <main className="main-content">{children}</main>
     </div>
   );

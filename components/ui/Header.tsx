@@ -10,6 +10,8 @@ import {
   User,
   ChevronDown,
   Menu,
+  Moon,
+  Sun
 } from 'lucide-react';
 import { capitalize } from '@/lib/utils';
 
@@ -21,9 +23,34 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
   const { user, logout } = useAuth();
   const router = useRouter();
   const [showUserMenu, setShowUserMenu] = useState(false);
-  const [showSearch, setShowSearch] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [isDarkMode, setIsDarkMode] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    // Initialize theme from localStorage or system preference
+    const storedTheme = localStorage.getItem('theme');
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    
+    if (storedTheme === 'dark' || (!storedTheme && prefersDark)) {
+      setIsDarkMode(true);
+      document.documentElement.classList.add('dark');
+    }
+  }, []);
+
+  const toggleTheme = () => {
+    setIsDarkMode((prev) => {
+      const newTheme = !prev;
+      if (newTheme) {
+        document.documentElement.classList.add('dark');
+        localStorage.setItem('theme', 'dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+        localStorage.setItem('theme', 'light');
+      }
+      return newTheme;
+    });
+  };
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -54,9 +81,8 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
       {/* Left side */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
         <button
-          className="btn btn-ghost btn-icon"
+          className="btn btn-ghost btn-icon mobile-menu-btn"
           onClick={onToggleSidebar}
-          style={{ display: 'none' }}
           id="sidebar-toggle"
         >
           <Menu size={20} />
@@ -78,6 +104,16 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
 
       {/* Right side */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+        
+        {/* Theme Toggle */}
+        <button
+          className="btn btn-ghost btn-icon"
+          onClick={toggleTheme}
+          title={isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+        >
+          {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
+        </button>
+
         {/* Notification Bell */}
         <button
           className="btn btn-ghost btn-icon"
@@ -111,7 +147,7 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
             >
               {user?.name?.charAt(0) || 'U'}
             </div>
-            <div style={{ textAlign: 'left' }}>
+            <div style={{ textAlign: 'left' }} className="hidden sm:block">
               <div
                 style={{
                   fontSize: '0.8125rem',

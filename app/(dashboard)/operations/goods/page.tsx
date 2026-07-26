@@ -1,16 +1,25 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Plus, Download } from 'lucide-react';
+import { Plus, Download, CheckCircle, Filter } from 'lucide-react';
 import Link from 'next/link';
 import DataTable, { type Column } from '@/components/ui/DataTable';
+import StatusBadge from '@/components/ui/StatusBadge';
+import GoodsApprovalModal from '@/components/goods/GoodsApprovalModal';
 
 import { formatDate, exportToCSV } from '@/lib/utils';
 import type { GoodsEntry } from '@/lib/types';
 
+type FilterType = 'All' | 'Recorded' | 'Approved';
+
 export default function GoodsPage() {
   const [entries, setEntries] = useState<GoodsEntry[]>([]);
   const [loading, setLoading] = useState(true);
+  const [statusFilter, setStatusFilter] = useState<FilterType>('All');
+  
+  // Selection state
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [showApprovalModal, setShowApprovalModal] = useState(false);
 
   const fetchEntries = async () => {
     setLoading(true);
@@ -31,7 +40,6 @@ export default function GoodsPage() {
     fetchEntries();
   }, []);
 
-
   const handleExport = () => {
     exportToCSV(
       entries.map(e => ({
@@ -40,13 +48,68 @@ export default function GoodsPage() {
         Item: e.itemDescription,
         Quantity: e.quantity,
         Department: e.departmentReceiving,
-        Officer: e.securityOfficer
+        Officer: e.securityOfficer,
+        Status: e.status || 'Recorded',
+        ApprovedBy: e.approvedBy || 'N/A'
       })),
       `Received_Goods`
     );
   };
 
+  const filteredEntries = entries.filter(e => {
+    if (statusFilter === 'All') return true;
+    const itemStatus = e.status || 'Recorded';
+    return itemStatus === statusFilter;
+  });
+
+  const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.checked) {
+      // Only allow selecting 'Recorded' items for approval
+      const recordIds = filteredEntries
+        .filter(item => (item.status || 'Recorded') === 'Recorded' && item._id)
+        .map(item => item._id as string);
+      setSelectedIds(recordIds);
+    } else {
+      setSelectedIds([]);
+    }
+  };
+
+  const handleSelectOne = (id: string, e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.checked) {
+      setSelectedIds(prev => [...prev, id]);
+    } else {
+      setSelectedIds(prev => prev.filter(item => item !== id));
+    }
+  };
+
+  // Determine if all selectable items are checked
+  const selectableItems = filteredEntries.filter(item => (item.status || 'Recorded') === 'Recorded' && item._id);
+  const allSelectableChecked = selectableItems.length > 0 && selectableItems.every(item => selectedIds.includes(item._id as string));
+
   const columns: Column<GoodsEntry>[] = [
+    { 
+      key: 'select', 
+      label: (
+        <input 
+          type="checkbox" 
+          checked={allSelectableChecked} 
+          onChange={handleSelectAll}
+          disabled={selectableItems.length === 0}
+          title="Select all 'Recorded' items"
+        />
+      ), 
+      render: (item) => {
+        const isRecorded = (item.status || 'Recorded') === 'Recorded';
+        return isRecorded ? (
+          <input 
+            type="checkbox" 
+            checked={!!item._id && selectedIds.includes(item._id)}
+            onChange={(e) => item._id && handleSelectOne(item._id, e)}
+          />
+        ) : null;
+      }, 
+      sortable: false 
+    },
     { key: 'date', label: 'Date', render: (item) => `${formatDate(item.date)} ${item.time}`, sortable: true },
     { key: 'itemDescription', label: 'Item / Qty', render: (item) => (
       <div>
@@ -61,6 +124,17 @@ export default function GoodsPage() {
         <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>To: {item.receivedBy}</div>
         {item.storesPersonName && (
           <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>Stores: {item.storesPersonName}</div>
+        )}
+      </div>
+    ), sortable: true },
+
+    { key: 'status', label: 'Status', render: (item) => (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', alignItems: 'flex-start' }}>
+        <StatusBadge status={item.status || 'Recorded'} size="sm" />
+        {item.status === 'Approved' && item.approvedBy && (
+          <div style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)' }}>
+            by {item.approvedBy}
+          </div>
         )}
       </div>
     ), sortable: true },
@@ -92,13 +166,55 @@ export default function GoodsPage() {
           </div>
         ) : (
           <DataTable
-            data={entries}
+            data={filteredEntries}
             columns={columns}
             searchFields={['itemDescription', 'departmentReceiving']}
+            actions={
+              <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <Filter size={14} style={{ color: 'var(--color-text-muted)' }} />
+                  <select 
+                    className="form-select" 
+                    style={{ fontSize: '0.875rem', padding: '0.25rem 2rem 0.25rem 0.5rem', minWidth: '120px' }}
+                    value={statusFilter}
+                    onChange={(e) => {
+                      setStatusFilter(e.target.value as FilterType);
+                      setSelectedIds([]); // Clear selection on filter change
+                    }}
+                  >
+                    <option value="All">All Statuses</option>
+                    <option value="Recorded">Recorded</option>
+                    <option value="Approved">Approved</option>
+                  </select>
+                </div>
+                
+                {selectedIds.length > 0 && (
+                  <button 
+                    className="btn btn-primary" 
+                    onClick={() => setShowApprovalModal(true)}
+                  >
+                    <CheckCircle size={16} /> Approve Selected ({selectedIds.length})
+                  </button>
+                )}
+              </div>
+            }
           />
         )}
       </div>
 
+      {showApprovalModal && (
+        <GoodsApprovalModal
+          isOpen={showApprovalModal}
+          selectedCount={selectedIds.length}
+          selectedIds={selectedIds}
+          onClose={() => setShowApprovalModal(false)}
+          onSuccess={() => {
+            setShowApprovalModal(false);
+            setSelectedIds([]);
+            fetchEntries();
+          }}
+        />
+      )}
     </div>
   );
 }

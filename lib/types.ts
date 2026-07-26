@@ -33,6 +33,7 @@ export interface AuthSession {
 
 // ---------- Module 2: Received Goods ----------
 export type GoodsCondition = 'good' | 'damaged';
+export type GoodsStatus = 'Recorded' | 'Approved';
 
 export interface GoodsEntry extends BaseRecord {
   date: string;
@@ -45,6 +46,10 @@ export interface GoodsEntry extends BaseRecord {
   storesPersonName?: string;
   securityOfficer: string;
   signature?: string;
+  status: GoodsStatus;
+  approvedBy?: string;
+  approvedAt?: string;
+  approvalSignature?: string;
 }
 
 // ---------- Module 3: Day Visitors ----------

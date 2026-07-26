@@ -6,7 +6,7 @@ import { searchFilter } from '@/lib/utils';
 
 export interface Column<T> {
   key: keyof T | string;
-  label: string;
+  label: React.ReactNode;
   render?: (item: T) => React.ReactNode;
   sortable?: boolean;
 }
