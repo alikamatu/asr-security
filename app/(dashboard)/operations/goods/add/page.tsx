@@ -190,8 +190,9 @@ export default function AddGoodsPage() {
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             {items.map((item, idx) => (
-              <div key={idx} style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start', background: 'var(--color-bg-secondary)', padding: '1rem', borderRadius: '0.5rem' }}>
-                <div className="form-group" style={{ flex: 2, marginBottom: 0 }}>
+              <div key={idx} style={{ background: 'var(--color-bg-secondary)', padding: '0.75rem', borderRadius: 'var(--border-radius-xs)' }}>
+                {/* Item description — full width on top */}
+                <div className="form-group" style={{ marginBottom: '0.5rem' }}>
                   <label className="form-label" style={{ fontSize: '0.75rem' }}>Item Description</label>
                   <AutocompleteInput 
                     type="item"
@@ -200,42 +201,46 @@ export default function AddGoodsPage() {
                     required
                   />
                 </div>
-                <div className="form-group" style={{ width: '100px', marginBottom: 0 }}>
-                  <label className="form-label" style={{ fontSize: '0.75rem' }}>Qty</label>
-                  <input 
-                    type="number" 
-                    className="form-input" 
-                    min="1" 
-                    value={item.quantity} 
-                    onChange={(e) => handleItemChange(idx, 'quantity', parseInt(e.target.value) || 1)} 
-                    required 
-                  />
+
+                {/* Qty, Unit, and Delete — row beneath */}
+                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'flex-end' }}>
+                  <div className="form-group" style={{ flex: 1, minWidth: '70px', marginBottom: 0 }}>
+                    <label className="form-label" style={{ fontSize: '0.75rem' }}>Qty</label>
+                    <input 
+                      type="number" 
+                      className="form-input" 
+                      min="1" 
+                      value={item.quantity} 
+                      onChange={(e) => handleItemChange(idx, 'quantity', parseInt(e.target.value) || 1)} 
+                      required 
+                    />
+                  </div>
+                  <div className="form-group" style={{ flex: 1, minWidth: '80px', marginBottom: 0 }}>
+                    <label className="form-label" style={{ fontSize: '0.75rem' }}>Unit</label>
+                    <select 
+                      className="form-select" 
+                      value={item.quantityUnit} 
+                      onChange={(e) => handleItemChange(idx, 'quantityUnit', e.target.value)}
+                    >
+                      <option value="pcs">Pcs</option>
+                      <option value="kg">Kg</option>
+                      <option value="gallon">Gallon</option>
+                      <option value="bag">Bag</option>
+                      <option value="pack">Pack</option>
+                    </select>
+                  </div>
+                  
+                  {items.length > 1 && (
+                    <button 
+                      type="button" 
+                      onClick={() => removeItem(idx)}
+                      style={{ background: 'none', border: 'none', color: 'var(--color-danger)', cursor: 'pointer', padding: '0.5rem', flexShrink: 0 }}
+                      title="Remove Item"
+                    >
+                      <Trash2 size={18} />
+                    </button>
+                  )}
                 </div>
-                <div className="form-group" style={{ width: '120px', marginBottom: 0 }}>
-                  <label className="form-label" style={{ fontSize: '0.75rem' }}>Unit</label>
-                  <select 
-                    className="form-select" 
-                    value={item.quantityUnit} 
-                    onChange={(e) => handleItemChange(idx, 'quantityUnit', e.target.value)}
-                  >
-                    <option value="pcs">Pcs</option>
-                    <option value="kg">Kg</option>
-                    <option value="gallon">Gallon</option>
-                    <option value="bag">Bag</option>
-                    <option value="pack">Pack</option>
-                  </select>
-                </div>
-                
-                {items.length > 1 && (
-                  <button 
-                    type="button" 
-                    onClick={() => removeItem(idx)}
-                    style={{ marginTop: '1.5rem', background: 'none', border: 'none', color: 'var(--color-danger)', cursor: 'pointer', padding: '0.5rem' }}
-                    title="Remove Item"
-                  >
-                    <Trash2 size={18} />
-                  </button>
-                )}
               </div>
             ))}
             

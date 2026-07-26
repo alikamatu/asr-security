@@ -54,7 +54,7 @@
   --sidebar-width: 260px;
   --sidebar-collapsed-width: 72px;
   --header-height: 64px;
-  
+
   /* Google-Inspired Rounded Corners */
   --border-radius-pill: 9999px;
   --border-radius: 24px;
@@ -89,7 +89,7 @@
 
   --color-border: #1e293b;
   --color-border-light: #2d3a50;
-  
+
   --color-text-primary: #f1f5f9;
   --color-text-secondary: #94a3b8;
   --color-text-muted: #64748b;
@@ -152,22 +152,13 @@ body {
    ============================================================ */
 
 .card {
-  background: var(--color-bg-card);
   border: none;
   border-radius: var(--border-radius);
-  padding: 1.5rem;
   box-shadow: none;
   transition: all var(--transition-normal);
 }
 
-.card:hover {
-  background: var(--color-bg-card-hover);
-}
-
 .card-glass {
-  background: rgba(21, 29, 46, 0.6);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
   border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: var(--border-radius);
   padding: 1.5rem;
@@ -466,10 +457,22 @@ body {
   flex-shrink: 0;
 }
 
-.priority-dot-critical { background: var(--color-critical); box-shadow: 0 0 6px rgba(239, 68, 68, 0.5); }
-.priority-dot-high { background: var(--color-high); }
-.priority-dot-medium { background: var(--color-medium); }
-.priority-dot-low { background: var(--color-low); }
+.priority-dot-critical {
+  background: var(--color-critical);
+  box-shadow: 0 0 6px rgba(239, 68, 68, 0.5);
+}
+
+.priority-dot-high {
+  background: var(--color-high);
+}
+
+.priority-dot-medium {
+  background: var(--color-medium);
+}
+
+.priority-dot-low {
+  background: var(--color-low);
+}
 
 /* ============================================================
    Modal / Dialog
@@ -795,8 +798,14 @@ body {
   z-index: 1;
 }
 
-.timeline-item.priority-high::before { background: var(--color-high); }
-.timeline-item.priority-critical::before { background: var(--color-critical); box-shadow: 0 0 8px rgba(239, 68, 68, 0.5); }
+.timeline-item.priority-high::before {
+  background: var(--color-high);
+}
+
+.timeline-item.priority-critical::before {
+  background: var(--color-critical);
+  box-shadow: 0 0 8px rgba(239, 68, 68, 0.5);
+}
 
 .timeline-time {
   font-size: 0.75rem;
@@ -836,28 +845,61 @@ body {
    ============================================================ */
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes slideUp {
-  from { opacity: 0; transform: translateY(16px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes slideDown {
-  from { opacity: 0; transform: translateY(-8px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.5;
+  }
 }
 
 @keyframes countUp {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .animate-fade-in {
@@ -877,19 +919,42 @@ body {
 }
 
 /* Stagger children */
-.stagger-children > * {
+.stagger-children>* {
   animation: slideUp var(--transition-normal) ease-out;
   animation-fill-mode: both;
 }
 
-.stagger-children > *:nth-child(1) { animation-delay: 0ms; }
-.stagger-children > *:nth-child(2) { animation-delay: 50ms; }
-.stagger-children > *:nth-child(3) { animation-delay: 100ms; }
-.stagger-children > *:nth-child(4) { animation-delay: 150ms; }
-.stagger-children > *:nth-child(5) { animation-delay: 200ms; }
-.stagger-children > *:nth-child(6) { animation-delay: 250ms; }
-.stagger-children > *:nth-child(7) { animation-delay: 300ms; }
-.stagger-children > *:nth-child(8) { animation-delay: 350ms; }
+.stagger-children>*:nth-child(1) {
+  animation-delay: 0ms;
+}
+
+.stagger-children>*:nth-child(2) {
+  animation-delay: 50ms;
+}
+
+.stagger-children>*:nth-child(3) {
+  animation-delay: 100ms;
+}
+
+.stagger-children>*:nth-child(4) {
+  animation-delay: 150ms;
+}
+
+.stagger-children>*:nth-child(5) {
+  animation-delay: 200ms;
+}
+
+.stagger-children>*:nth-child(6) {
+  animation-delay: 250ms;
+}
+
+.stagger-children>*:nth-child(7) {
+  animation-delay: 300ms;
+}
+
+.stagger-children>*:nth-child(8) {
+  animation-delay: 350ms;
+}
 
 /* ============================================================
    Login Page
@@ -951,9 +1016,46 @@ body {
    Responsive
    ============================================================ */
 
+/* --- Mobile-only utilities (hidden on screens >= 768px) --- */
+.hide-on-mobile {
+  display: none;
+}
+
+/* Compact mobile table: smaller text, tighter padding */
+.data-table th,
+.data-table td {
+  padding: 0.5rem 0.5rem;
+  font-size: 0.8125rem;
+}
+
+/* Sidebar overlay backdrop (mobile only) */
+.sidebar-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.3);
+  z-index: 49;
+}
+
+.sidebar.open~.sidebar-overlay {
+  display: block;
+}
+
 @media (min-width: 640px) {
   .main-content {
     padding: 1.5rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .hide-on-mobile {
+    display: table-cell;
+  }
+
+  .data-table th,
+  .data-table td {
+    padding: 0.75rem 1rem;
+    font-size: 0.875rem;
   }
 }
 
@@ -963,6 +1065,10 @@ body {
   }
 
   .mobile-menu-btn {
+    display: none !important;
+  }
+
+  .sidebar-overlay {
     display: none !important;
   }
 
@@ -1059,8 +1165,13 @@ body {
 }
 
 @keyframes skeleton-shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
+  0% {
+    background-position: -200% 0;
+  }
+
+  100% {
+    background-position: 200% 0;
+  }
 }
 
 /* ============================================================

@@ -16,7 +16,7 @@ export default function GoodsPage() {
   const [entries, setEntries] = useState<GoodsEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<FilterType>('All');
-  
+
   // Selection state
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [showApprovalModal, setShowApprovalModal] = useState(false);
@@ -87,59 +87,66 @@ export default function GoodsPage() {
   const allSelectableChecked = selectableItems.length > 0 && selectableItems.every(item => selectedIds.includes(item._id as string));
 
   const columns: Column<GoodsEntry>[] = [
-    { 
-      key: 'select', 
+    {
+      key: 'select',
       label: (
-        <input 
-          type="checkbox" 
-          checked={allSelectableChecked} 
+        <input
+          type="checkbox"
+          checked={allSelectableChecked}
           onChange={handleSelectAll}
           disabled={selectableItems.length === 0}
           title="Select all 'Recorded' items"
         />
-      ), 
+      ),
       render: (item) => {
         const isRecorded = (item.status || 'Recorded') === 'Recorded';
         return isRecorded ? (
-          <input 
-            type="checkbox" 
+          <input
+            type="checkbox"
             checked={!!item._id && selectedIds.includes(item._id)}
             onChange={(e) => item._id && handleSelectOne(item._id, e)}
           />
         ) : null;
-      }, 
-      sortable: false 
+      },
+      sortable: false
     },
-    { key: 'date', label: 'Date', render: (item) => `${formatDate(item.date)} ${item.time}`, sortable: true },
-    { key: 'itemDescription', label: 'Item / Qty', render: (item) => (
-      <div>
-        <div style={{ fontWeight: 500 }}>{item.itemDescription}</div>
-        <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>Qty: {item.quantity} {item.quantityUnit || 'pcs'}</div>
-      </div>
-    ), sortable: true },
-
-    { key: 'departmentReceiving', label: 'Destination', render: (item) => (
-      <div>
-        <div>{item.departmentReceiving}</div>
-        <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>To: {item.receivedBy}</div>
-        {item.storesPersonName && (
-          <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>Stores: {item.storesPersonName}</div>
-        )}
-      </div>
-    ), sortable: true },
-
-    { key: 'status', label: 'Status', render: (item) => (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', alignItems: 'flex-start' }}>
-        <StatusBadge status={item.status || 'Recorded'} size="sm" />
-        {item.status === 'Approved' && item.approvedBy && (
-          <div style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)' }}>
-            by {item.approvedBy}
+    {
+      key: 'date', label: 'Date', render: (item) => (
+        <div>
+          <div style={{ fontSize: '0.5rem' }}>{formatDate(item.date)} {item.time}</div>
+          <div style={{ marginTop: '2px' }}>
+            <StatusBadge status={item.status || 'Recorded'} size="sm" />
+            {item.status === 'Approved' && item.approvedBy && (
+              <span style={{ fontSize: '0.65rem', color: 'var(--color-text-muted)', marginLeft: '0.25rem' }}>
+                {item.approvedBy}
+              </span>
+            )}
           </div>
-        )}
-      </div>
-    ), sortable: true },
+        </div>
+      ), sortable: true
+    },
+    {
+      key: 'itemDescription', label: 'Item / Qty', render: (item) => (
+        <div>
+          <div style={{ fontWeight: 500, fontSize: '0.7rem' }}>{item.itemDescription}</div>
+          <div style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)' }}>{item.quantity} {item.quantityUnit || 'pcs'}</div>
+        </div>
+      ), sortable: true
+    },
 
-    { key: 'securityOfficer', label: 'Officer', sortable: true },
+    {
+      key: 'departmentReceiving', label: 'Destination', className: 'hide-on-mobile', render: (item) => (
+        <div>
+          <div style={{ fontSize: '0.8125rem' }}>{item.departmentReceiving}</div>
+          <div style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)' }}>To: {item.receivedBy}</div>
+          {item.storesPersonName && (
+            <div style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)' }}>Stores: {item.storesPersonName}</div>
+          )}
+        </div>
+      ), sortable: true
+    },
+
+    { key: 'securityOfficer', label: 'Officer', className: 'hide-on-mobile', sortable: true },
   ];
 
   return (
@@ -173,8 +180,8 @@ export default function GoodsPage() {
               <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                   <Filter size={14} style={{ color: 'var(--color-text-muted)' }} />
-                  <select 
-                    className="form-select" 
+                  <select
+                    className="form-select"
                     style={{ fontSize: '0.875rem', padding: '0.25rem 2rem 0.25rem 0.5rem', minWidth: '120px' }}
                     value={statusFilter}
                     onChange={(e) => {
@@ -187,10 +194,10 @@ export default function GoodsPage() {
                     <option value="Approved">Approved</option>
                   </select>
                 </div>
-                
+
                 {selectedIds.length > 0 && (
-                  <button 
-                    className="btn btn-primary" 
+                  <button
+                    className="btn btn-primary"
                     onClick={() => setShowApprovalModal(true)}
                   >
                     <CheckCircle size={16} /> Approve Selected ({selectedIds.length})

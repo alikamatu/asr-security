@@ -53,7 +53,10 @@ export default function DashboardLayout({
 
   return (
     <div>
-      <Sidebar isOpen={isSidebarOpen} />
+      <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
+      {isSidebarOpen && (
+        <div className="sidebar-overlay" style={{ display: 'block' }} onClick={() => setIsSidebarOpen(false)} />
+      )}
       <Header onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} />
       <main className="main-content">{children}</main>
     </div>

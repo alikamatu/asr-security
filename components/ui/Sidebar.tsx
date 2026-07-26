@@ -20,6 +20,7 @@ import {
   Shield,
   ChevronDown,
   ChevronRight,
+  X,
 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -74,9 +75,10 @@ const NAV_GROUPS: NavGroup[] = [
 
 interface SidebarProps {
   isOpen?: boolean;
+  onClose?: () => void;
 }
 
-export default function Sidebar({ isOpen = false }: SidebarProps) {
+export default function Sidebar({ isOpen = false, onClose }: SidebarProps) {
   const pathname = usePathname();
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({
     Operations: true,
@@ -100,7 +102,7 @@ export default function Sidebar({ isOpen = false }: SidebarProps) {
         <div className="sidebar-brand-icon">
           <Shield size={20} color="white" />
         </div>
-        <div>
+        <div style={{ flex: 1 }}>
           <div
             style={{
               fontSize: '0.9375rem',
@@ -123,6 +125,15 @@ export default function Sidebar({ isOpen = false }: SidebarProps) {
             Security Control
           </div>
         </div>
+        {onClose && (
+          <button
+            className="btn btn-ghost btn-icon mobile-menu-btn"
+            onClick={onClose}
+            aria-label="Close sidebar"
+          >
+            <X size={20} />
+          </button>
+        )}
       </div>
 
       {/* Navigation */}
