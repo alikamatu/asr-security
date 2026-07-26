@@ -186,9 +186,6 @@ export default function AddGoodsPage() {
             <h2 style={{ fontSize: '1.125rem', fontWeight: 600, margin: 0 }}>
               Items Received
             </h2>
-            <button type="button" className="btn btn-secondary btn-sm" onClick={addItem}>
-              <Plus size={14} /> Add Row
-            </button>
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
@@ -241,6 +238,10 @@ export default function AddGoodsPage() {
                 )}
               </div>
             ))}
+            
+            <button type="button" className="btn btn-secondary btn-sm" onClick={addItem} style={{ alignSelf: 'flex-start', marginTop: '0.5rem' }}>
+              <Plus size={14} /> Add Row
+            </button>
           </div>
         </div>
 
