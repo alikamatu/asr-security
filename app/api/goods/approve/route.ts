@@ -31,9 +31,9 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Invalid PIN. Please try again.' }, { status: 403 });
     }
 
-    // Bulk update: only update entries that are still 'Recorded'
+    // Bulk update: match entries that are 'Recorded' OR have no status (legacy entries)
     const result = await GoodsEntryModel.updateMany(
-      { _id: { $in: ids }, status: 'Recorded' },
+      { _id: { $in: ids }, $or: [{ status: 'Recorded' }, { status: { $exists: false } }, { status: null }] },
       {
         $set: {
           status: 'Approved',
