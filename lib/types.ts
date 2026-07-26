@@ -22,10 +22,12 @@ export interface User extends BaseRecord {
   avatar?: string;
   isActive: boolean;
   lastLogin?: string;
+  signatureCode?: string;
+  department?: string;
 }
 
 export interface AuthSession {
-  user: Pick<User, '_id' | 'name' | 'email' | 'role' | 'avatar'>;
+  user: Pick<User, '_id' | 'name' | 'email' | 'role' | 'avatar' | 'signatureCode'>;
   token: string;
 }
 
@@ -35,17 +37,13 @@ export type GoodsCondition = 'good' | 'damaged';
 export interface GoodsEntry extends BaseRecord {
   date: string;
   time: string;
-  deliveryCompany: string;
-  supplier: string;
   itemDescription: string;
   quantity: number;
+  quantityUnit?: string;
   departmentReceiving: string;
   receivedBy: string;
+  storesPersonName?: string;
   securityOfficer: string;
-  deliveryNoteNumber: string;
-  condition: GoodsCondition;
-  remarks: string;
-  photoAttachment?: string;
   signature?: string;
 }
 

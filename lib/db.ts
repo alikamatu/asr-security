@@ -1,6 +1,15 @@
 import mongoose from 'mongoose';
+import dns from 'node:dns';
 
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/asr-security';
+// Fix Node.js Windows SRV lookup issue for MongoDB Atlas (querySrv ECONNREFUSED)
+try {
+  dns.setServers(['8.8.8.8', '1.1.1.1', '8.8.4.4']);
+} catch {
+  // Ignore if custom DNS servers cannot be set
+}
+
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/asr-security';
+const LOCAL_FALLBACK_URI = 'mongodb://127.0.0.1:27017/asr-security';
 
 interface MongooseCache {
   conn: typeof mongoose | null;
@@ -24,9 +33,29 @@ export async function connectDB(): Promise<typeof mongoose> {
   }
 
   if (!cached.promise) {
-    cached.promise = mongoose.connect(MONGODB_URI, {
-      bufferCommands: false,
-    });
+    cached.promise = (async () => {
+      try {
+        return await mongoose.connect(MONGODB_URI, {
+          bufferCommands: false,
+          serverSelectionTimeoutMS: 5000,
+        });
+      } catch (primaryErr) {
+        const errMsg = primaryErr instanceof Error ? primaryErr.message : String(primaryErr);
+        console.warn(`Primary MongoDB URI connection failed (${errMsg}). Trying local MongoDB...`);
+        
+        if (MONGODB_URI !== LOCAL_FALLBACK_URI) {
+          try {
+            return await mongoose.connect(LOCAL_FALLBACK_URI, {
+              bufferCommands: false,
+              serverSelectionTimeoutMS: 3000,
+            });
+          } catch (localErr) {
+            console.error('Local fallback MongoDB connection also failed:', localErr);
+          }
+        }
+        throw primaryErr;
+      }
+    })();
   }
 
   try {

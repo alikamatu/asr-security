@@ -104,7 +104,7 @@ export default function DataTable<T>({
             {sortedData.length > 0 ? (
               sortedData.map((item, idx) => (
                 <tr 
-                  key={item._id || idx}
+                  key={(item as Record<string, unknown>)._id ? String((item as Record<string, unknown>)._id) : idx}
                   onClick={() => onRowClick && onRowClick(item)}
                   style={{ cursor: onRowClick ? 'pointer' : 'default' }}
                 >

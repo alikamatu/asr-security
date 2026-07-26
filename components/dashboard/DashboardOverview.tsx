@@ -15,10 +15,10 @@ import {
 } from 'lucide-react';
 import StatCard from '@/components/ui/StatCard';
 import StatusBadge from '@/components/ui/StatusBadge';
-import { formatDate, formatTime, capitalize, getRelativeTime } from '@/lib/utils';
+import { capitalize } from '@/lib/utils';
 import type { DashboardStats, OBEntry } from '@/lib/types';
 
-export default function DashboardPage() {
+export default function DashboardOverview() {
   const [stats, setStats] = useState<DashboardStats>({
     totalVisitorsToday: 0,
     goodsReceivedToday: 0,

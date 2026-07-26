@@ -37,7 +37,7 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
 
   const handleLogout = async () => {
     await logout();
-    router.push('/login');
+    router.push('/');
   };
 
   const getRoleColor = (role: string) => {

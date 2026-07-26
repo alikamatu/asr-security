@@ -13,7 +13,7 @@ interface AuthUser {
 interface AuthContextType {
   user: AuthUser | null;
   loading: boolean;
-  login: (email: string, password: string) => Promise<boolean>;
+  login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => Promise<void>;
   isAuthenticated: boolean;
 }
@@ -21,7 +21,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType>({
   user: null,
   loading: true,
-  login: async () => false,
+  login: async () => ({ success: false }),
   logout: async () => {},
   isAuthenticated: false,
 });
@@ -51,21 +51,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     void checkSession();
   }, [checkSession]);
 
-  const login = async (email: string, password: string): Promise<boolean> => {
+  const login = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
     try {
       const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
       });
+      const data = await res.json();
       if (res.ok) {
-        const data = await res.json();
         setUser(data.user);
-        return true;
+        return { success: true };
       }
-      return false;
+      return { success: false, error: data.error || 'Invalid credentials' };
     } catch {
-      return false;
+      return { success: false, error: 'Network error or server unreachable' };
     }
   };
 
