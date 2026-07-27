@@ -11,7 +11,7 @@ export async function POST(request: Request) {
     }
 
     await connectDB();
-    const { ids, approverName, pin } = await request.json();
+    const { ids, approverName, pin, remainders = {} } = await request.json();
 
     if (!ids || !Array.isArray(ids) || ids.length === 0) {
       return NextResponse.json({ error: 'No items selected for approval' }, { status: 400 });
@@ -31,18 +31,42 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Invalid PIN. Please try again.' }, { status: 403 });
     }
 
-    // Bulk update: match entries that are 'Recorded' OR have no status (legacy entries)
-    const result = await GoodsEntryModel.updateMany(
-      { _id: { $in: ids }, $or: [{ status: 'Recorded' }, { status: { $exists: false } }, { status: null }] },
-      {
-        $set: {
-          status: 'Approved',
-          approvedBy: approverName,
-          approvedAt: new Date(),
-          approvalSignature: user.signatureCode,
-        },
+    // Prepare bulk operations to handle per-item remainders
+    const operations = ids.map((id: string) => {
+      const rem = remainders[id];
+      const hasRemainder = rem !== undefined && rem !== null;
+      
+      const updateData: any = {
+        status: hasRemainder ? 'Remainder' : 'Approved',
+        approvedBy: approverName,
+        approvedAt: new Date(),
+        approvalSignature: user.signatureCode,
+      };
+
+      const unsetData: any = {};
+
+      if (hasRemainder) {
+        updateData.hasRemainder = true;
+        updateData.remainder = rem;
+      } else {
+        updateData.hasRemainder = false;
+        unsetData.remainder = "";
       }
-    );
+
+      const updateOp: any = { $set: updateData };
+      if (Object.keys(unsetData).length > 0) {
+        updateOp.$unset = unsetData;
+      }
+
+      return {
+        updateOne: {
+          filter: { _id: id },
+          update: updateOp
+        }
+      };
+    });
+
+    const result = await GoodsEntryModel.bulkWrite(operations);
 
     return NextResponse.json({
       message: `${result.modifiedCount} item(s) approved successfully`,

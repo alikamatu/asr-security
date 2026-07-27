@@ -108,7 +108,7 @@ export default function GoodsForm({ onSuccess, onCancel }: GoodsFormProps) {
         </div>
         <div className="form-group">
           <label className="form-label">Quantity</label>
-          <input type="number" name="quantity" className="form-input" min="1" value={formData.quantity} onChange={handleChange} required />
+          <input type="number" name="quantity" className="form-input" min="0" step="any" value={formData.quantity} onChange={handleChange} required />
         </div>
         <div className="form-group">
           <label className="form-label">Delivery Note / Invoice No.</label>

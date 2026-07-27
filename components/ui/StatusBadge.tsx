@@ -22,6 +22,7 @@ const STATUS_MAP: Record<string, string> = {
   // Goods approval status
   'Recorded': 'badge-warning',
   'Approved': 'badge-success',
+  'Remainder': 'badge-danger',
   'fair': 'badge-warning',
   'poor': 'badge-danger',
   'out-of-service': 'badge-danger',

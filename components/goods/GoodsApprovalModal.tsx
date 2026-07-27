@@ -11,6 +11,7 @@ interface GoodsApprovalModalProps {
   onClose: () => void;
   onSuccess: (modifiedCount: number) => void;
   selectedIds: string[];
+  remainders?: { [id: string]: number };
 }
 
 export default function GoodsApprovalModal({
@@ -18,7 +19,8 @@ export default function GoodsApprovalModal({
   selectedCount,
   onClose,
   onSuccess,
-  selectedIds
+  selectedIds,
+  remainders = {}
 }: GoodsApprovalModalProps) {
   const [approverName, setApproverName] = useState('');
   const [pin, setPin] = useState('');
@@ -43,7 +45,7 @@ export default function GoodsApprovalModal({
       const res = await fetch('/api/goods/approve', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ids: selectedIds, approverName, pin }),
+        body: JSON.stringify({ ids: selectedIds, approverName, pin, remainders }),
       });
 
       if (res.ok) {

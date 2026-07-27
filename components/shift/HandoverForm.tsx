@@ -111,11 +111,11 @@ export default function HandoverForm({ onSuccess, onCancel }: HandoverFormProps)
       <div className="grid-form" style={{ marginBottom: '1rem' }}>
         <div className="form-group">
           <label className="form-label">Visitors Still Inside</label>
-          <input type="number" name="visitorsStillInside" className="form-input" min="0" value={formData.visitorsStillInside} onChange={handleChange} required />
+          <input type="number" name="visitorsStillInside" className="form-input" min="0" step="any" value={formData.visitorsStillInside} onChange={handleChange} required />
         </div>
         <div className="form-group">
           <label className="form-label">Goods Pending Collection</label>
-          <input type="number" name="goodsPendingCollection" className="form-input" min="0" value={formData.goodsPendingCollection} onChange={handleChange} required />
+          <input type="number" name="goodsPendingCollection" className="form-input" min="0" step="any" value={formData.goodsPendingCollection} onChange={handleChange} required />
         </div>
       </div>
 

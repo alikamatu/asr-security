@@ -808,7 +808,7 @@ body {
 }
 
 .timeline-time {
-  font-size: 0.75rem;
+  font-size: 0.5rem;
   font-weight: 600;
   color: var(--color-text-muted);
   font-family: var(--font-mono);

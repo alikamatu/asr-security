@@ -33,7 +33,7 @@ export interface AuthSession {
 
 // ---------- Module 2: Received Goods ----------
 export type GoodsCondition = 'good' | 'damaged';
-export type GoodsStatus = 'Recorded' | 'Approved';
+export type GoodsStatus = 'Recorded' | 'Approved' | 'Remainder';
 
 export interface GoodsEntry extends BaseRecord {
   date: string;
@@ -41,6 +41,8 @@ export interface GoodsEntry extends BaseRecord {
   itemDescription: string;
   quantity: number;
   quantityUnit?: string;
+  hasRemainder?: boolean;
+  remainder?: number;
   departmentReceiving: string;
   receivedBy: string;
   storesPersonName?: string;
