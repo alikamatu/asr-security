@@ -9,7 +9,21 @@ import PinVerificationModal from '@/components/goods/PinVerificationModal';
 import Link from 'next/link';
 
 const STORAGE_KEY = 'asr_goods_draft';
-const VALID_UNITS = ['pcs', 'kg', 'gallon', 'bag', 'pack', 'litre', 'box', 'crate', 'roll', 'set'];
+const VALID_UNITS = [
+  'pc', 'pcs',
+  'kg', 'kgs',
+  'gallon', 'gallons',
+  'bag', 'bags',
+  'pack', 'packs',
+  'litre', 'litres',
+  'box', 'boxes',
+  'crate', 'crates',
+  'roll', 'rolls',
+  'set', 'sets',
+  'bottle', 'bottles',
+  'carton', 'cartons',
+  'tin', 'tins'
+];
 
 interface ParsedItem {
   itemDescription: string;
@@ -110,6 +124,8 @@ export default function AddGoodsPage() {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const suggestionsRef = useRef<HTMLUListElement>(null);
 
+  const [isInitialized, setIsInitialized] = useState(false);
+
   // Restore draft from localStorage on mount
   useEffect(() => {
     try {
@@ -129,10 +145,12 @@ export default function AddGoodsPage() {
         setTimeout(() => setDraftRestored(false), 3000);
       }
     } catch { /* ignore corrupt data */ }
+    setIsInitialized(true);
   }, []);
 
   // Persist to localStorage on every change
   const saveDraft = useCallback(() => {
+    if (!isInitialized) return; // Prevent overwriting with default state before restore completes
     try {
       const draft: DraftData = {
         ...formData,
@@ -141,7 +159,7 @@ export default function AddGoodsPage() {
       };
       localStorage.setItem(STORAGE_KEY, JSON.stringify(draft));
     } catch { /* ignore */ }
-  }, [formData, notesText]);
+  }, [formData, notesText, isInitialized]);
 
   useEffect(() => {
     saveDraft();
@@ -186,30 +204,46 @@ export default function AddGoodsPage() {
     const newText = e.target.value;
     setNotesText(newText);
 
-    // Get the current line for autocomplete
     const textarea = e.target;
     const cursorPos = textarea.selectionStart;
     const textBeforeCursor = newText.substring(0, cursorPos);
     const currentLineStart = textBeforeCursor.lastIndexOf('\n') + 1;
     const currentLine = textBeforeCursor.substring(currentLineStart);
     
-    // Only autocomplete the item part (before the first comma)
-    const itemPart = currentLine.split(',')[0]?.trim() || '';
-    
-    // Track which line we're on
+    const parts = currentLine.split(',');
+    const activePartIndex = parts.length - 1; // 0 = item, 1 = qty, 2 = unit
+    const activePartText = (parts[activePartIndex] || '').trimLeft();
+
     const lineIndex = textBeforeCursor.split('\n').length - 1;
     setActiveLine(lineIndex);
     
-    // Calculate cursor Y position relative to textarea
     const lineHeight = parseFloat(getComputedStyle(textarea).lineHeight) || 28;
     const paddingTop = parseFloat(getComputedStyle(textarea).paddingTop) || 12;
     const cursorY = paddingTop + (lineIndex + 1) * lineHeight;
     setSuggestionsTop(Math.min(cursorY, textarea.offsetHeight));
     
     if (debounceTimer.current) clearTimeout(debounceTimer.current);
-    debounceTimer.current = setTimeout(() => {
-      fetchSuggestions(itemPart);
-    }, 200);
+
+    if (activePartIndex === 0) {
+      // Autocomplete item
+      debounceTimer.current = setTimeout(() => {
+        fetchSuggestions(activePartText);
+      }, 200);
+    } else if (activePartIndex === 2) {
+      // Autocomplete unit
+      const query = activePartText.toLowerCase();
+      if (query.length > 0) {
+        const matches = VALID_UNITS.filter(u => u.startsWith(query)).slice(0, 5);
+        setSuggestions(matches);
+        setShowSuggestions(matches.length > 0);
+      } else {
+        setSuggestions([]);
+        setShowSuggestions(false);
+      }
+    } else {
+      setSuggestions([]);
+      setShowSuggestions(false);
+    }
   };
 
   const applySuggestion = (suggestion: string) => {
@@ -224,18 +258,34 @@ export default function AddGoodsPage() {
     const lineEnd = currentLineEnd === -1 ? text.length : currentLineEnd;
     const currentLine = text.substring(currentLineStart, lineEnd);
     
-    // Replace the item part (before first comma) with the suggestion
     const parts = currentLine.split(',');
-    parts[0] = suggestion;
-    const newLine = parts.length > 1 ? parts.join(', ') : suggestion + ', ';
+    const activePartIndex = textBeforeCursor.substring(currentLineStart).split(',').length - 1;
+
+    let newLine = currentLine;
+    let appendedText = '';
+
+    if (activePartIndex === 0) {
+      parts[0] = suggestion;
+      newLine = parts.length > 1 ? parts.join(',') : suggestion + ', ';
+      appendedText = parts.length > 1 ? '' : ', ';
+    } else if (activePartIndex === 2) {
+      parts[2] = ' ' + suggestion;
+      newLine = parts.join(',');
+      appendedText = '';
+    }
     
     const newText = text.substring(0, currentLineStart) + newLine + text.substring(lineEnd);
     setNotesText(newText);
     setShowSuggestions(false);
     
-    // Move cursor to after the suggestion + comma
     requestAnimationFrame(() => {
-      const newCursorPos = currentLineStart + newLine.length;
+      // Find where the suggestion ends
+      let newCursorPos = currentLineStart;
+      if (activePartIndex === 0) {
+        newCursorPos += suggestion.length + appendedText.length;
+      } else if (activePartIndex === 2) {
+        newCursorPos = currentLineStart + newLine.length;
+      }
       textarea.focus();
       textarea.setSelectionRange(newCursorPos, newCursorPos);
     });

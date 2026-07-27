@@ -27,7 +27,7 @@ const GoodsEntrySchema = new Schema(
     time: { type: String, required: true },
     itemDescription: { type: String, required: true },
     quantity: { type: Number, required: true },
-    quantityUnit: { type: String, enum: ['pcs', 'kg', 'gallon', 'bag', 'pack'], default: 'pcs' },
+    quantityUnit: { type: String, default: 'pcs' },
     hasRemainder: { type: Boolean, default: false },
     remainder: { type: Number },
     departmentReceiving: { type: String, required: true },
@@ -255,6 +255,16 @@ const OBEntrySchema = new Schema(
 // Model Exports (with existing model check for hot reload)
 // ============================================================
 /* eslint-disable @typescript-eslint/no-explicit-any */
+
+// Force clear models in development to prevent schema caching issues
+if (process.env.NODE_ENV !== 'production') {
+  const modelsToClear = ['User', 'GoodsEntry', 'Visitor', 'Tip', 'PlaybackEntry', 'Incident', 'ShiftHandover', 'Equipment', 'Vehicle', 'LostFound', 'OBEntry'];
+  for (const modelName of modelsToClear) {
+    delete (mongoose.connection.models as any)[modelName];
+    delete (mongoose.models as any)[modelName];
+  }
+}
+
 export const UserModel: Model<any> = mongoose.models.User || mongoose.model('User', UserSchema);
 export const GoodsEntryModel: Model<any> = mongoose.models.GoodsEntry || mongoose.model('GoodsEntry', GoodsEntrySchema);
 export const VisitorModel: Model<any> = mongoose.models.Visitor || mongoose.model('Visitor', VisitorSchema);

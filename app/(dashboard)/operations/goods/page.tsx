@@ -141,9 +141,9 @@ export default function GoodsPage() {
           <div style={{ fontSize: '0.5rem' }}>{formatDate(item.date)} {item.time}</div>
           <div style={{ marginTop: '2px' }}>
             <StatusBadge status={item.status || 'Recorded'} size="sm" />
-            {item.status === 'Approved' && item.approvedBy && (
+            {['Approved', 'Remainder'].includes(item.status || '') && item.approvedBy && (
               <span style={{ fontSize: '0.65rem', color: 'var(--color-text-muted)', marginLeft: '0.25rem' }}>
-                {item.approvedBy}
+                {item.status === 'Remainder' ? 'Marked Remainder by: ' : 'Verified by: '}{item.approvedBy}
               </span>
             )}
           </div>
@@ -331,9 +331,9 @@ export default function GoodsPage() {
                             <p style={{ margin: 0 }}>By: {item.receivedBy}</p>
                           </div>
                         </div>
-                        {item.status === 'Approved' && item.approvedBy && (
+                        {['Approved', 'Remainder'].includes(item.status || '') && item.approvedBy && (
                           <p style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)', margin: '0.25rem 0 0' }}>
-                            Approved by: {item.approvedBy}
+                            ✓ {item.status === 'Remainder' ? 'Marked Remainder by: ' : 'Verified by: '} {item.approvedBy}
                           </p>
                         )}
                       </div>
