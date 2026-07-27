@@ -321,7 +321,7 @@ export default function GoodsPage() {
                               Qty: {item.quantity} {item.quantityUnit || 'pcs'}
                               {(item.status === 'Remainder' || item.hasRemainder) && item.remainder !== undefined && (
                                 <span style={{ color: 'var(--color-danger)', marginLeft: '0.5rem', fontWeight: 600 }}>
-                                  Remainder: {item.remainder}
+                                  {item.remainder}
                                 </span>
                               )}
                             </p>

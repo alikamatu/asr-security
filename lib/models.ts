@@ -8,7 +8,7 @@ const UserSchema = new Schema(
     name: { type: String, required: true },
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
-    role: { type: String, enum: ['admin', 'officer', 'supervisor', 'manager'], default: 'officer' },
+    role: { type: String, enum: ['superadmin', 'admin', 'officer', 'supervisor', 'manager'], default: 'officer' },
     department: { type: String, default: 'Security' },
     signatureCode: { type: String },
     avatar: { type: String },
@@ -252,13 +252,50 @@ const OBEntrySchema = new Schema(
 );
 
 // ============================================================
+// Documents Model
+// ============================================================
+const DocumentFileSchema = new Schema({
+  fileUrl: { type: String, required: true },
+  originalName: { type: String, required: true },
+  mimeType: { type: String, required: true },
+  size: { type: Number, required: true },
+});
+
+const DocumentEntrySchema = new Schema(
+  {
+    title: { type: String, required: true },
+    description: { type: String },
+    sensitivity: { type: String, enum: ['public', 'internal', 'confidential'], default: 'internal' },
+    colorLabel: { type: String, enum: ['default', 'blue', 'green', 'red', 'yellow', 'purple'], default: 'default' },
+    files: [DocumentFileSchema],
+    uploadedBy: { type: String, required: true },
+    uploaderName: { type: String },
+  },
+  { timestamps: true }
+);
+
+// ============================================================
+// Activity Log Model
+// ============================================================
+const ActivityLogSchema = new Schema(
+  {
+    action: { type: String, required: true },
+    module: { type: String, required: true }, // e.g. 'Users', 'Settings', 'Goods'
+    description: { type: String, required: true },
+    performedBy: { type: String, required: true }, // User's name
+    role: { type: String }, // User's role
+  },
+  { timestamps: true }
+);
+
+// ============================================================
 // Model Exports (with existing model check for hot reload)
 // ============================================================
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 // Force clear models in development to prevent schema caching issues
 if (process.env.NODE_ENV !== 'production') {
-  const modelsToClear = ['User', 'GoodsEntry', 'Visitor', 'Tip', 'PlaybackEntry', 'Incident', 'ShiftHandover', 'Equipment', 'Vehicle', 'LostFound', 'OBEntry'];
+  const modelsToClear = ['User', 'GoodsEntry', 'Visitor', 'Tip', 'PlaybackEntry', 'Incident', 'ShiftHandover', 'Equipment', 'Vehicle', 'LostFound', 'OBEntry', 'ActivityLog', 'DocumentEntry'];
   for (const modelName of modelsToClear) {
     delete (mongoose.connection.models as any)[modelName];
     delete (mongoose.models as any)[modelName];
@@ -276,4 +313,6 @@ export const EquipmentModel: Model<any> = mongoose.models.Equipment || mongoose.
 export const VehicleModel: Model<any> = mongoose.models.Vehicle || mongoose.model('Vehicle', VehicleSchema);
 export const LostFoundModel: Model<any> = mongoose.models.LostFound || mongoose.model('LostFound', LostFoundSchema);
 export const OBEntryModel: Model<any> = mongoose.models.OBEntry || mongoose.model('OBEntry', OBEntrySchema);
+export const ActivityLogModel: Model<any> = mongoose.models.ActivityLog || mongoose.model('ActivityLog', ActivityLogSchema);
+export const DocumentEntryModel: Model<any> = mongoose.models.DocumentEntry || mongoose.model('DocumentEntry', DocumentEntrySchema);
 /* eslint-enable @typescript-eslint/no-explicit-any */

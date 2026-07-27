@@ -63,6 +63,17 @@ export default function DataTable<T>({
     setCurrentPage(1);
   };
 
+  // Generate unique autocomplete suggestions based on searchFields
+  const searchSuggestions = searchable && searchFields.length > 0 && query.length >= 1
+    ? Array.from(new Set(
+        data.flatMap(item => searchFields.map(field => {
+          const val = String(item[field] || '');
+          // Simple case-insensitive match for the suggestions
+          return val.toLowerCase().includes(query.toLowerCase()) ? val : null;
+        })).filter((val): val is string => val !== null && val.trim().length > 0)
+      )).slice(0, 10) // Limit to 10 suggestions for performance/UX
+    : [];
+
   const handleSort = (key: keyof T | string) => {
     let direction: 'asc' | 'desc' = 'asc';
     if (sortConfig && sortConfig.key === key && sortConfig.direction === 'asc') {
@@ -80,11 +91,19 @@ export default function DataTable<T>({
             <Search size={16} />
             <input
               type="text"
+              list={searchSuggestions.length > 0 ? "datatable-search-suggestions" : undefined}
               className="form-input"
               placeholder="Search..."
               value={query}
               onChange={(e) => handleSearch(e.target.value)}
             />
+            {searchSuggestions.length > 0 && (
+              <datalist id="datatable-search-suggestions">
+                {searchSuggestions.map((suggestion, idx) => (
+                  <option key={idx} value={suggestion} />
+                ))}
+              </datalist>
+            )}
           </div>
         )}
         <div style={{ display: 'flex', gap: '0.5rem', marginLeft: 'auto' }}>

@@ -62,6 +62,7 @@ export async function clearSession(): Promise<void> {
 
 // Role permission checks
 const ROLE_HIERARCHY: Record<UserRole, number> = {
+  superadmin: 5,
   admin: 4,
   manager: 3,
   supervisor: 2,
@@ -73,35 +74,35 @@ export function hasPermission(userRole: UserRole, requiredRole: UserRole): boole
 }
 
 export function canCreate(role: UserRole): boolean {
-  return ['admin', 'officer', 'supervisor'].includes(role);
+  return ['superadmin', 'admin', 'officer', 'supervisor'].includes(role);
 }
 
 export function canEdit(role: UserRole, isOwner: boolean): boolean {
-  if (role === 'admin' || role === 'supervisor') return true;
+  if (role === 'superadmin' || role === 'admin' || role === 'supervisor') return true;
   if (role === 'officer' && isOwner) return true;
   return false;
 }
 
 export function canDelete(role: UserRole): boolean {
-  return role === 'admin';
+  return role === 'superadmin' || role === 'admin';
 }
 
 export function canViewAll(role: UserRole): boolean {
-  return ['admin', 'supervisor', 'manager'].includes(role);
+  return ['superadmin', 'admin', 'supervisor', 'manager'].includes(role);
 }
 
 export function canManageUsers(role: UserRole): boolean {
-  return role === 'admin';
+  return role === 'superadmin' || role === 'admin';
 }
 
 export function canGenerateReports(role: UserRole): boolean {
-  return ['admin', 'supervisor', 'manager'].includes(role);
+  return ['superadmin', 'admin', 'supervisor', 'manager'].includes(role);
 }
 
 export function canApprovePlayback(role: UserRole): boolean {
-  return ['admin', 'supervisor'].includes(role);
+  return ['superadmin', 'admin', 'supervisor'].includes(role);
 }
 
 export function canCloseIncidents(role: UserRole): boolean {
-  return ['admin', 'supervisor'].includes(role);
+  return ['superadmin', 'admin', 'supervisor'].includes(role);
 }

@@ -12,7 +12,7 @@ export interface BaseRecord {
 }
 
 // ---------- Auth & Users ----------
-export type UserRole = 'admin' | 'officer' | 'supervisor' | 'manager';
+export type UserRole = 'superadmin' | 'admin' | 'officer' | 'supervisor' | 'manager';
 
 export interface User extends BaseRecord {
   name: string;
@@ -218,6 +218,27 @@ export interface OBEntry extends BaseRecord {
   officer: string;
   category: OBCategory;
   priority: Priority;
+}
+
+// ---------- Module 12: Documents ----------
+export type DocumentSensitivity = 'public' | 'internal' | 'confidential';
+export type DocumentColorLabel = 'default' | 'blue' | 'green' | 'red' | 'yellow' | 'purple';
+
+export interface DocumentFile {
+  fileUrl: string;
+  originalName: string;
+  mimeType: string;
+  size: number;
+}
+
+export interface DocumentEntry extends BaseRecord {
+  title: string;
+  description?: string;
+  sensitivity: DocumentSensitivity;
+  colorLabel: DocumentColorLabel;
+  files: DocumentFile[];
+  uploadedBy: string; // user id
+  uploaderName?: string; // user name for display
 }
 
 // ---------- Module 13: Notifications ----------

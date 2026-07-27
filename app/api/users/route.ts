@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import connectDB from '@/lib/db';
-import { UserModel } from '@/lib/models';
+import { UserModel, ActivityLogModel } from '@/lib/models';
 import { getSession } from '@/lib/auth';
 import bcrypt from 'bcryptjs';
 
@@ -15,8 +15,8 @@ const DEMO_USERS_LIST = [
 export async function GET() {
   try {
     const session = await getSession();
-    // Only Admin or Manager can view users
-    if (!session || !['admin', 'manager'].includes(session.role)) {
+    // Only superadmin or admin can view users
+    if (!session || !['superadmin', 'admin'].includes(session.role)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
     }
 
@@ -37,7 +37,7 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const session = await getSession();
-    if (!session || session.role !== 'admin') {
+    if (!session || !['superadmin', 'admin'].includes(session.role)) {
       return NextResponse.json({ error: 'Unauthorized. Only admins can create users.' }, { status: 403 });
     }
 
@@ -74,6 +74,15 @@ export async function POST(request: Request) {
       });
 
       await newUser.save();
+
+      // Log the activity
+      await ActivityLogModel.create({
+        action: 'Created User',
+        module: 'Users',
+        description: `Created new user account for ${newUser.name} (${newUser.role})`,
+        performedBy: session.name,
+        role: session.role,
+      });
 
       const userObj = newUser.toObject();
       delete userObj.password;
