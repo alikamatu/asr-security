@@ -2,8 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
 import connectToDatabase from '@/lib/db';
 import { DocumentEntryModel, ActivityLogModel } from '@/lib/models';
-import { promises as fs } from 'fs';
-import path from 'path';
 
 // Force node runtime to handle file streams properly
 export const runtime = 'nodejs';
@@ -64,28 +62,25 @@ export async function POST(req: NextRequest) {
 
     await connectToDatabase();
 
-    const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'documents');
-    
-    // Ensure dir exists (we created it earlier but good to be safe)
-    await fs.mkdir(uploadDir, { recursive: true }).catch(() => {});
+    // Check total size to avoid MongoDB 16MB BSON limit (Base64 adds ~33% overhead, so 10MB safe limit)
+    const totalSize = uploadedFiles.reduce((acc, file) => acc + file.size, 0);
+    if (totalSize > 10 * 1024 * 1024) { // 10MB
+      return NextResponse.json({ error: 'Total file size exceeds the 10MB limit. Please upload smaller files.' }, { status: 400 });
+    }
 
     const fileRecords = [];
 
-    // Save physical files
+    // Save files as Base64 Data URIs (bypasses Vercel read-only file system restrictions)
     for (const file of uploadedFiles) {
       const buffer = Buffer.from(await file.arrayBuffer());
-      // Generate safe unique filename
-      const originalName = file.name;
-      const safeName = originalName.replace(/[^a-zA-Z0-9.-]/g, '_');
-      const uniqueFileName = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}-${safeName}`;
-      
-      const filePath = path.join(uploadDir, uniqueFileName);
-      await fs.writeFile(filePath, buffer);
+      const base64Data = buffer.toString('base64');
+      const mimeType = file.type || 'application/octet-stream';
+      const dataUri = `data:${mimeType};base64,${base64Data}`;
 
       fileRecords.push({
-        fileUrl: `/uploads/documents/${uniqueFileName}`,
-        originalName: originalName,
-        mimeType: file.type || 'application/octet-stream',
+        fileUrl: dataUri,
+        originalName: file.name,
+        mimeType: mimeType,
         size: file.size,
       });
     }

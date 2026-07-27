@@ -17,6 +17,7 @@ export default function GoodsPage() {
   const [entries, setEntries] = useState<GoodsEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<FilterType>('All');
+  const [dateFilter, setDateFilter] = useState<string>('');
 
   // Selection state
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
@@ -72,9 +73,9 @@ export default function GoodsPage() {
   };
 
   const filteredEntries = entries.filter(e => {
-    if (statusFilter === 'All') return true;
-    const itemStatus = e.status || 'Recorded';
-    return itemStatus === statusFilter;
+    const statusMatch = statusFilter === 'All' || (e.status || 'Recorded') === statusFilter;
+    const dateMatch = !dateFilter || e.date === dateFilter;
+    return statusMatch && dateMatch;
   });
 
   const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -215,6 +216,16 @@ export default function GoodsPage() {
                   <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                       <Filter size={14} style={{ color: 'var(--color-text-muted)' }} />
+                      <input
+                        type="date"
+                        className="form-input"
+                        style={{ fontSize: '0.875rem', padding: '0.25rem 0.5rem' }}
+                        value={dateFilter}
+                        onChange={(e) => {
+                          setDateFilter(e.target.value);
+                          setSelectedIds([]);
+                        }}
+                      />
                       <select
                         className="form-select"
                         style={{ fontSize: '0.875rem', padding: '0.25rem 2rem 0.25rem 0.5rem', minWidth: '120px' }}
@@ -258,19 +269,31 @@ export default function GoodsPage() {
                     <span style={{ fontSize: '0.875rem', fontWeight: 500, color: 'var(--color-text-secondary)' }}>Select All</span>
                   </div>
 
-                  <select
-                    className="form-select"
-                    style={{ fontSize: '0.8125rem', padding: '0.25rem 2rem 0.25rem 0.5rem' }}
-                    value={statusFilter}
-                    onChange={(e) => {
-                      setStatusFilter(e.target.value as FilterType);
-                      setSelectedIds([]);
-                    }}
-                  >
-                    <option value="All">All Statuses</option>
-                    <option value="Recorded">Recorded</option>
-                    <option value="Approved">Approved</option>
-                  </select>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <input
+                      type="date"
+                      className="form-input"
+                      style={{ fontSize: '0.8125rem', padding: '0.25rem 0.5rem', flex: '1 1 auto' }}
+                      value={dateFilter}
+                      onChange={(e) => {
+                        setDateFilter(e.target.value);
+                        setSelectedIds([]);
+                      }}
+                    />
+                    <select
+                      className="form-select"
+                      style={{ fontSize: '0.8125rem', padding: '0.25rem 2rem 0.25rem 0.5rem', flex: '1 1 auto' }}
+                      value={statusFilter}
+                      onChange={(e) => {
+                        setStatusFilter(e.target.value as FilterType);
+                        setSelectedIds([]);
+                      }}
+                    >
+                      <option value="All">All Statuses</option>
+                      <option value="Recorded">Recorded</option>
+                      <option value="Approved">Approved</option>
+                    </select>
+                  </div>
                 </div>
               </div>
 
