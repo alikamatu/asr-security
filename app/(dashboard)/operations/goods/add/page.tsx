@@ -48,8 +48,15 @@ function parseLine(line: string): ParsedItem | null {
   const itemDescription = parts[0] || '';
   if (!itemDescription) return null;
   
-  const rawQty = parts[1] ? parseFloat(parts[1]) : NaN;
-  const quantity = isNaN(rawQty) || rawQty <= 0 ? 0 : rawQty;
+  const rawQtyStr = parts[1] || '';
+  let quantity = 0;
+  if (rawQtyStr) {
+    const addends = rawQtyStr.split('+');
+    quantity = addends.reduce((acc, curr) => {
+      const val = parseFloat(curr.trim());
+      return acc + (isNaN(val) ? 0 : val);
+    }, 0);
+  }
   
   const rawUnit = (parts[2] || '').toLowerCase();
   const quantityUnit = VALID_UNITS.includes(rawUnit) ? rawUnit : '';
@@ -72,8 +79,16 @@ function validateLines(text: string): LineError[] {
     const itemName = parts[0] || '';
     if (!itemName) return;
     
-    const rawQty = parts[1] ? parseFloat(parts[1]) : NaN;
-    const hasQty = !isNaN(rawQty) && rawQty > 0;
+    const rawQtyStr = parts[1] || '';
+    let qty = 0;
+    if (rawQtyStr) {
+      const addends = rawQtyStr.split('+');
+      qty = addends.reduce((acc, curr) => {
+        const val = parseFloat(curr.trim());
+        return acc + (isNaN(val) ? 0 : val);
+      }, 0);
+    }
+    const hasQty = qty > 0;
     
     const rawUnit = (parts[2] || '').toLowerCase();
     const hasUnit = VALID_UNITS.includes(rawUnit);

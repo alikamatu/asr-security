@@ -1,12 +1,13 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Plus, Download, CheckCircle, Filter, Eye } from 'lucide-react';
+import { Plus, Download, CheckCircle, Filter, Eye, Edit2 } from 'lucide-react';
 import Link from 'next/link';
 import DataTable, { type Column } from '@/components/ui/DataTable';
 import StatusBadge from '@/components/ui/StatusBadge';
 import GoodsApprovalModal from '@/components/goods/GoodsApprovalModal';
 import ItemPreviewSheet from '@/components/goods/ItemPreviewSheet';
+import GoodsEditModal from '@/components/goods/GoodsEditModal';
 
 import { formatDate, exportToCSV } from '@/lib/utils';
 import type { GoodsEntry } from '@/lib/types';
@@ -23,6 +24,7 @@ export default function GoodsPage() {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [showApprovalModal, setShowApprovalModal] = useState(false);
   const [showPreviewSheet, setShowPreviewSheet] = useState(false);
+  const [editingItem, setEditingItem] = useState<GoodsEntry | null>(null);
   const [approvalRemainders, setApprovalRemainders] = useState<{ [id: string]: number }>({});
 
   const handleDirectApprove = () => {
@@ -37,14 +39,20 @@ export default function GoodsPage() {
     setShowApprovalModal(true);
   };
 
-  const fetchEntries = async () => {
-    setLoading(true);
+  const loadDataFromApi = async () => {
+    const res = await fetch(`/api/goods`);
+    if (res.ok) {
+      const data = await res.json();
+      return data.entries || [];
+    }
+    throw new Error('Failed to fetch data');
+  };
+
+  const fetchEntries = async (showLoading = true) => {
+    if (showLoading) setLoading(true);
     try {
-      const res = await fetch(`/api/goods`);
-      if (res.ok) {
-        const data = await res.json();
-        setEntries(data.entries || []);
-      }
+      const data = await loadDataFromApi();
+      setEntries(data);
     } catch (error) {
       console.error('Failed to fetch goods entries', error);
     } finally {
@@ -53,7 +61,20 @@ export default function GoodsPage() {
   };
 
   useEffect(() => {
-    fetchEntries();
+    let mounted = true;
+    
+    loadDataFromApi()
+      .then(data => {
+        if (mounted) setEntries(data);
+      })
+      .catch(error => {
+        console.error('Failed to fetch goods entries', error);
+      })
+      .finally(() => {
+        if (mounted) setLoading(false);
+      });
+
+    return () => { mounted = false; };
   }, []);
 
   const handleExport = () => {
@@ -154,7 +175,7 @@ export default function GoodsPage() {
     {
       key: 'itemDescription', label: 'Item / Qty', render: (item) => (
         <div>
-          <div style={{ fontWeight: 500, fontSize: '0.7rem' }}>{item.itemDescription}</div>
+          <div style={{ fontWeight: 500, fontSize: '0.9rem' }}>{item.itemDescription}</div>
           <div style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)' }}>
             {item.quantity} {item.quantityUnit || 'pcs'}
             {(item.status === 'Remainder' || item.hasRemainder) && item.remainder !== undefined && (
@@ -180,6 +201,18 @@ export default function GoodsPage() {
     },
 
     { key: 'securityOfficer', label: 'Officer', className: 'hide-on-mobile', sortable: true },
+    {
+      key: 'actions', label: '', className: 'hide-on-mobile', render: (item) => (
+        <button 
+          className="btn btn-ghost btn-sm" 
+          onClick={(e) => { e.stopPropagation(); setEditingItem(item); }}
+          title="Edit Entry"
+          style={{ padding: '0.25rem 0.5rem' }}
+        >
+          <Edit2 size={14} style={{ color: 'var(--color-text-muted)' }} />
+        </button>
+      ), sortable: false
+    }
   ];
 
   return (
@@ -223,7 +256,6 @@ export default function GoodsPage() {
                         value={dateFilter}
                         onChange={(e) => {
                           setDateFilter(e.target.value);
-                          setSelectedIds([]);
                         }}
                       />
                       <select
@@ -232,7 +264,6 @@ export default function GoodsPage() {
                         value={statusFilter}
                         onChange={(e) => {
                           setStatusFilter(e.target.value as FilterType);
-                          setSelectedIds([]); // Clear selection on filter change
                         }}
                       >
                         <option value="All">All Statuses</option>
@@ -277,7 +308,6 @@ export default function GoodsPage() {
                       value={dateFilter}
                       onChange={(e) => {
                         setDateFilter(e.target.value);
-                        setSelectedIds([]);
                       }}
                     />
                     <select
@@ -286,7 +316,6 @@ export default function GoodsPage() {
                       value={statusFilter}
                       onChange={(e) => {
                         setStatusFilter(e.target.value as FilterType);
-                        setSelectedIds([]);
                       }}
                     >
                       <option value="All">All Statuses</option>
@@ -326,6 +355,14 @@ export default function GoodsPage() {
                         )}
                         <span className="timeline-time">{formatDate(item.date)} {item.time}</span>
                         <StatusBadge status={item.status || 'Recorded'} size="sm" />
+                        <button 
+                          className="btn btn-ghost btn-sm" 
+                          onClick={(e) => { e.stopPropagation(); setEditingItem(item); }}
+                          title="Edit Entry"
+                          style={{ padding: '0.25rem', marginLeft: 'auto' }}
+                        >
+                          <Edit2 size={14} style={{ color: 'var(--color-text-muted)' }} />
+                        </button>
                       </div>
                       <div className="timeline-content" style={{ marginTop: '0.5rem' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
@@ -442,6 +479,18 @@ export default function GoodsPage() {
             setShowApprovalModal(false);
             setSelectedIds([]);
             setApprovalRemainders({});
+            fetchEntries();
+          }}
+        />
+      )}
+
+      {editingItem && (
+        <GoodsEditModal
+          isOpen={!!editingItem}
+          item={editingItem}
+          onClose={() => setEditingItem(null)}
+          onSuccess={() => {
+            setEditingItem(null);
             fetchEntries();
           }}
         />
