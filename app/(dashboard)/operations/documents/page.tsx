@@ -30,7 +30,7 @@ export default function DocumentsPage() {
   const [sensitivity, setSensitivity] = useState<DocumentSensitivity>('internal');
   const [colorLabel, setColorLabel] = useState<DocumentColorLabel>('default');
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
-  
+
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const fetchDocuments = async () => {
@@ -82,7 +82,7 @@ export default function DocumentsPage() {
     formData.append('description', description);
     formData.append('sensitivity', sensitivity);
     formData.append('colorLabel', colorLabel);
-    
+
     selectedFiles.forEach((file) => {
       formData.append('files', file);
     });
@@ -100,7 +100,7 @@ export default function DocumentsPage() {
 
       const data = await res.json();
       setDocuments((prev) => [data.document, ...prev]);
-      
+
       // Reset form
       setTitle('');
       setDescription('');
@@ -174,10 +174,10 @@ export default function DocumentsPage() {
   };
 
   const filteredDocuments = documents.filter((doc) => {
-    const matchesSearch = 
-      doc.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    const matchesSearch =
+      doc.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       (doc.description && doc.description.toLowerCase().includes(searchQuery.toLowerCase()));
-    
+
     const matchesSensitivity = filterSensitivity === 'all' || doc.sensitivity === filterSensitivity;
     const matchesColor = filterColorLabel === 'all' || doc.colorLabel === filterColorLabel;
 
@@ -193,9 +193,9 @@ export default function DocumentsPage() {
             <p className="page-subtitle" style={{ fontSize: '0.75rem' }}>Central repository for standard operating procedures, policies, and files.</p>
           </div>
           <div>
-            <button 
-              className="btn btn-primary" 
-              style={{ borderRadius: '50%', width: 48, height: 48, padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 12px rgba(46, 204, 113, 0.3)' }} 
+            <button
+              className="btn btn-primary"
+              style={{ borderRadius: '50%', width: 48, height: 48, padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 12px rgba(46, 204, 113, 0.3)' }}
               onClick={() => setIsModalOpen(true)}
               title="Upload Document"
             >
@@ -203,9 +203,9 @@ export default function DocumentsPage() {
             </button>
           </div>
         </div>
-        
+
         {/* Search & Filters */}
-        <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1rem', flexWrap: 'wrap', alignItems: 'center' }}>
+        <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1rem', flexWrap: 'wrap', alignItems: 'center', width: '100%' }}>
           <input
             type="text"
             className="form-input"
@@ -214,7 +214,7 @@ export default function DocumentsPage() {
             onChange={(e) => setSearchQuery(e.target.value)}
             style={{ flex: '1 1 200px', minWidth: '200px', padding: '0.5rem 1rem', borderRadius: '2rem' }}
           />
-          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
+          <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
             <select
               className="form-select"
               value={filterSensitivity}
@@ -264,7 +264,7 @@ export default function DocumentsPage() {
               {doc.colorLabel !== 'default' && (
                 <div style={{ position: 'absolute', top: 0, left: 0, bottom: 0, width: '4px', backgroundColor: getColorLabelHex(doc.colorLabel) }} />
               )}
-              
+
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem', paddingLeft: doc.colorLabel !== 'default' ? '0.5rem' : '0' }}>
                 <h3 style={{ fontSize: '1rem', margin: 0, fontWeight: 600, color: 'var(--color-text-primary)' }}>{doc.title}</h3>
                 {doc.sensitivity === 'confidential' && (
@@ -277,10 +277,10 @@ export default function DocumentsPage() {
                     <ShieldCheck size={10} /> Public
                   </span>
                 )}
-                
+
                 {(user?.role === 'admin' || user?.role === 'superadmin') && (
-                  <button 
-                    className="btn btn-ghost btn-sm" 
+                  <button
+                    className="btn btn-ghost btn-sm"
                     style={{ padding: '0.125rem 0.25rem', height: 'auto', color: 'var(--color-danger)', marginLeft: '0.5rem' }}
                     onClick={() => openDeleteModal(doc)}
                     title="Delete Document"
@@ -289,7 +289,7 @@ export default function DocumentsPage() {
                   </button>
                 )}
               </div>
-              
+
               {doc.description && (
                 <p style={{ fontSize: '0.8125rem', color: 'var(--color-text-muted)', marginBottom: '1rem', lineHeight: 1.4, paddingLeft: doc.colorLabel !== 'default' ? '0.5rem' : '0' }}>
                   {doc.description}
@@ -310,10 +310,10 @@ export default function DocumentsPage() {
                         </div>
                       </div>
                     </div>
-                    <a 
-                      href={file.fileUrl} 
+                    <a
+                      href={file.fileUrl}
                       download={file.originalName}
-                      className="btn btn-ghost" 
+                      className="btn btn-ghost"
                       style={{ width: 32, height: 32, padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
                       title={`Download ${file.originalName}`}
                     >
@@ -406,20 +406,20 @@ export default function DocumentsPage() {
 
           <div className="form-group" style={{ marginBottom: '1.5rem' }}>
             <label className="form-label">Files ({selectedFiles.length} selected)</label>
-            
-            <div 
+
+            <div
               style={{ border: '2px dashed var(--color-border)', borderRadius: 'var(--border-radius-md)', padding: '1.5rem', textAlign: 'center', background: 'var(--color-bg-secondary)', cursor: 'pointer', marginBottom: '0.75rem' }}
               onClick={() => fileInputRef.current?.click()}
             >
               <FileIcon size={32} style={{ color: 'var(--color-text-muted)', margin: '0 auto 0.5rem' }} />
               <div style={{ fontSize: '0.875rem', fontWeight: 500, color: 'var(--color-accent)' }}>Tap to browse files</div>
               <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>PDF, Word, Excel, Images</div>
-              <input 
-                type="file" 
-                multiple 
-                ref={fileInputRef} 
-                onChange={handleFileChange} 
-                style={{ display: 'none' }} 
+              <input
+                type="file"
+                multiple
+                ref={fileInputRef}
+                onChange={handleFileChange}
+                style={{ display: 'none' }}
               />
             </div>
 
@@ -431,9 +431,9 @@ export default function DocumentsPage() {
                       {getFileIcon(file.type)}
                       <span style={{ fontSize: '0.8125rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{file.name}</span>
                     </div>
-                    <button 
-                      type="button" 
-                      className="btn btn-ghost btn-sm" 
+                    <button
+                      type="button"
+                      className="btn btn-ghost btn-sm"
                       style={{ color: 'var(--color-danger)', padding: '0.25rem 0.5rem' }}
                       onClick={() => removeFile(idx)}
                     >
@@ -468,27 +468,27 @@ export default function DocumentsPage() {
         title="Delete Document? 🗑️"
       >
         <div style={{ textAlign: 'center', padding: '1rem' }}>
-          <div 
-            style={{ 
-              width: 64, 
-              height: 64, 
-              background: 'var(--color-danger-bg)', 
-              color: 'var(--color-danger)', 
-              borderRadius: '50%', 
-              display: 'flex', 
-              alignItems: 'center', 
+          <div
+            style={{
+              width: 64,
+              height: 64,
+              background: 'var(--color-danger-bg)',
+              color: 'var(--color-danger)',
+              borderRadius: '50%',
+              display: 'flex',
+              alignItems: 'center',
               justifyContent: 'center',
               margin: '0 auto 1.5rem'
             }}
           >
             <ShieldAlert size={32} />
           </div>
-          
+
           <h3 style={{ fontSize: '1.25rem', marginBottom: '0.5rem' }}>
             Are you absolutely sure?
           </h3>
           <p style={{ color: 'var(--color-text-muted)', marginBottom: '1.5rem', lineHeight: 1.5 }}>
-            You are about to permanently delete <strong>{documentToDelete?.title}</strong> and all of its attached files from the server.<br/><br/>
+            You are about to permanently delete <strong>{documentToDelete?.title}</strong> and all of its attached files from the server.<br /><br />
             <span style={{ fontSize: '0.875rem' }}>
               (This action cannot be undone!)
             </span>

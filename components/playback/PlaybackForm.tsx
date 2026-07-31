@@ -1,8 +1,8 @@
 'use client';
 
-import { useState } from 'react';
-import { Loader2 } from 'lucide-react';
-import { getTodayDate, getCurrentTime, DEPARTMENTS, LOCATIONS, generateEvidenceNumber } from '@/lib/utils';
+import { useState, useRef } from 'react';
+import { Loader2, Plus, Trash2, Video } from 'lucide-react';
+import { getTodayDate, getCurrentTime } from '@/lib/utils';
 import type { PlaybackEntry } from '@/lib/types';
 
 interface PlaybackFormProps {
@@ -10,29 +10,50 @@ interface PlaybackFormProps {
   onCancel: () => void;
 }
 
+interface TimelineForm {
+  id: string;
+  date: string;
+  time: string;
+  description: string;
+  file: File | null;
+}
+
 export default function PlaybackForm({ onSuccess, onCancel }: PlaybackFormProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   
-  const [formData, setFormData] = useState({
-    dateRequested: getTodayDate(),
-    timeRequested: getCurrentTime(),
-    cameraNumber: '',
-    cameraLocation: LOCATIONS[0],
-    incidentDate: getTodayDate(),
-    incidentTime: getCurrentTime(),
-    requestedBy: '',
-    department: DEPARTMENTS[0],
-    reason: '',
-    footageDuration: '',
-    exportFormat: 'mp4',
-    storageLocation: 'NVR Archive',
-    evidenceNumber: generateEvidenceNumber(),
-    remarks: '',
-  });
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  const [timelines, setTimelines] = useState<TimelineForm[]>([
+    {
+      id: Math.random().toString(),
+      date: getTodayDate(),
+      time: getCurrentTime(),
+      description: '',
+      file: null,
+    }
+  ]);
+
+  const addTimeline = () => {
+    setTimelines(prev => [
+      ...prev,
+      {
+        id: Math.random().toString(),
+        date: getTodayDate(),
+        time: getCurrentTime(),
+        description: '',
+        file: null,
+      }
+    ]);
+  };
+
+  const removeTimeline = (id: string) => {
+    setTimelines(prev => prev.filter(t => t.id !== id));
+  };
+
+  const handleTimelineChange = (id: string, field: keyof TimelineForm, value: any) => {
+    setTimelines(prev => prev.map(t => t.id === id ? { ...t, [field]: value } : t));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -41,34 +62,49 @@ export default function PlaybackForm({ onSuccess, onCancel }: PlaybackFormProps)
     setError('');
 
     try {
+      if (!title.trim() || !description.trim()) {
+        throw new Error('Title and main description are required.');
+      }
+
+      if (timelines.length === 0) {
+        throw new Error('Please add at least one timeline.');
+      }
+
+      const formData = new FormData();
+      formData.append('title', title);
+      formData.append('description', description);
+
+      const timelinesMeta = timelines.map(t => ({
+        date: t.date,
+        time: t.time,
+        description: t.description,
+      }));
+      formData.append('timelinesStr', JSON.stringify(timelinesMeta));
+
+      // Check sizes and append files
+      let totalSize = 0;
+      timelines.forEach((t, index) => {
+        if (t.file) {
+          totalSize += t.file.size;
+          formData.append(`timelineFile_${index}`, t.file);
+        }
+      });
+
+      if (totalSize > 10 * 1024 * 1024) {
+        throw new Error('Total size of all videos exceeds the 10MB limit. Please compress them or upload fewer clips at once.');
+      }
+
       const res = await fetch('/api/playback', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            ...formData,
-            uploadDate: getTodayDate(), // Assuming uploaded immediately for now
-        }),
+        body: formData, // fetch will auto-set multipart/form-data boundary
       });
 
       if (!res.ok) {
-        throw new Error('Failed to record playback request');
+        const errData = await res.json();
+        throw new Error(errData.error || 'Failed to record playback entry');
       }
 
       const data = await res.json();
-      
-      // Log to OB
-      await fetch('/api/ob', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          date: formData.dateRequested,
-          time: formData.timeRequested,
-          category: 'playback',
-          priority: 'medium',
-          entry: `CCTV Playback Exported: Camera ${formData.cameraNumber} (${formData.cameraLocation}) for incident on ${formData.incidentDate}. Evidence No: ${formData.evidenceNumber}. Requested by ${formData.requestedBy}.`,
-        }),
-      });
-
       onSuccess(data.entry);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Something went wrong');
@@ -80,110 +116,103 @@ export default function PlaybackForm({ onSuccess, onCancel }: PlaybackFormProps)
   return (
     <form onSubmit={handleSubmit} className="stagger-children">
       {error && (
-        <div style={{ color: 'var(--color-danger)', fontSize: '0.875rem', marginBottom: '1rem' }}>
+        <div style={{ padding: '0.75rem', background: 'var(--color-danger-bg)', color: 'var(--color-danger)', borderRadius: 'var(--border-radius-md)', marginBottom: '1rem', fontSize: '0.875rem' }}>
           {error}
         </div>
       )}
 
-      <div className="grid-form" style={{ marginBottom: '1rem' }}>
-        <div className="form-group">
-          <label className="form-label">Evidence Number (Auto-generated)</label>
-          <input type="text" name="evidenceNumber" className="form-input" value={formData.evidenceNumber} disabled />
-        </div>
-      </div>
-
-      <div className="grid-form" style={{ marginBottom: '1rem' }}>
-        <div className="form-group">
-          <label className="form-label">Date Requested</label>
-          <input type="date" name="dateRequested" className="form-input" value={formData.dateRequested} onChange={handleChange} required />
-        </div>
-        <div className="form-group">
-          <label className="form-label">Time Requested</label>
-          <input type="time" name="timeRequested" className="form-input" value={formData.timeRequested} onChange={handleChange} required />
-        </div>
-      </div>
-
-      <h3 style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--color-text-heading)', marginBottom: '0.75rem', marginTop: '1.5rem', borderBottom: '1px solid var(--color-border)', paddingBottom: '0.5rem' }}>
-        Camera & Incident Details
-      </h3>
-
-      <div className="grid-form" style={{ marginBottom: '1rem' }}>
-        <div className="form-group">
-          <label className="form-label">Camera Number/Name</label>
-          <input type="text" name="cameraNumber" className="form-input" placeholder="e.g. CAM-04" value={formData.cameraNumber} onChange={handleChange} required />
-        </div>
-        <div className="form-group">
-          <label className="form-label">Camera Location</label>
-          <select name="cameraLocation" className="form-select" value={formData.cameraLocation} onChange={handleChange} required>
-            {LOCATIONS.map(loc => (
-              <option key={loc} value={loc}>{loc}</option>
-            ))}
-          </select>
-        </div>
-      </div>
-
-      <div className="grid-form" style={{ marginBottom: '1rem' }}>
-        <div className="form-group">
-          <label className="form-label">Date of Incident</label>
-          <input type="date" name="incidentDate" className="form-input" value={formData.incidentDate} onChange={handleChange} required />
-        </div>
-        <div className="form-group">
-          <label className="form-label">Time of Incident</label>
-          <input type="time" name="incidentTime" className="form-input" value={formData.incidentTime} onChange={handleChange} required />
-        </div>
-      </div>
-
-      <div className="form-group" style={{ marginBottom: '1.5rem' }}>
-        <label className="form-label">Reason for Playback</label>
-        <textarea 
-          name="reason" 
-          className="form-textarea" 
-          placeholder="Briefly describe why the footage is needed..." 
-          value={formData.reason} 
-          onChange={handleChange} 
+      <div className="form-group" style={{ marginBottom: '1rem' }}>
+        <label className="form-label">Main Title</label>
+        <input 
+          type="text" 
+          className="form-input" 
+          placeholder="e.g. Theft Incident at Main Gate" 
+          value={title} 
+          onChange={e => setTitle(e.target.value)} 
           required 
-          rows={2}
         />
       </div>
 
-      <h3 style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--color-text-heading)', marginBottom: '0.75rem', borderBottom: '1px solid var(--color-border)', paddingBottom: '0.5rem' }}>
-        Requestor & Export Details
+      <div className="form-group" style={{ marginBottom: '1.5rem' }}>
+        <label className="form-label">Main Description</label>
+        <textarea 
+          className="form-textarea" 
+          placeholder="Describe the overall incident..." 
+          value={description} 
+          onChange={e => setDescription(e.target.value)} 
+          required 
+          rows={3}
+        />
+      </div>
+
+      <h3 style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--color-text-heading)', marginBottom: '1rem', borderBottom: '1px solid var(--color-border)', paddingBottom: '0.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <span>Footage Timelines</span>
+        <button type="button" className="btn btn-secondary btn-sm" onClick={addTimeline}>
+          <Plus size={14} /> Add Timeline
+        </button>
       </h3>
 
-      <div className="grid-form" style={{ marginBottom: '1rem' }}>
-        <div className="form-group">
-          <label className="form-label">Requested By</label>
-          <input type="text" name="requestedBy" className="form-input" placeholder="Name of person requesting" value={formData.requestedBy} onChange={handleChange} required />
-        </div>
-        <div className="form-group">
-          <label className="form-label">Department</label>
-          <select name="department" className="form-select" value={formData.department} onChange={handleChange} required>
-            {DEPARTMENTS.map(dept => (
-              <option key={dept} value={dept}>{dept}</option>
-            ))}
-          </select>
-        </div>
-      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', marginBottom: '2rem' }}>
+        {timelines.map((timeline, index) => (
+          <div key={timeline.id} style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-md)', padding: '1rem', position: 'relative' }}>
+            <div style={{ position: 'absolute', top: '1rem', right: '1rem' }}>
+              <button 
+                type="button" 
+                className="btn btn-ghost btn-sm" 
+                style={{ color: 'var(--color-danger)' }}
+                onClick={() => removeTimeline(timeline.id)}
+                disabled={timelines.length === 1}
+              >
+                <Trash2 size={16} />
+              </button>
+            </div>
+            
+            <h4 style={{ fontSize: '0.875rem', fontWeight: 600, marginBottom: '1rem', color: 'var(--color-primary)' }}>
+              Timeline #{index + 1}
+            </h4>
+            
+            <div className="grid-form" style={{ marginBottom: '1rem' }}>
+              <div className="form-group">
+                <label className="form-label">Date of Incident</label>
+                <input type="date" className="form-input" value={timeline.date} onChange={e => handleTimelineChange(timeline.id, 'date', e.target.value)} required />
+              </div>
+              <div className="form-group">
+                <label className="form-label">Timestamp</label>
+                <input type="time" className="form-input" value={timeline.time} onChange={e => handleTimelineChange(timeline.id, 'time', e.target.value)} required />
+              </div>
+            </div>
 
-      <div className="grid-form" style={{ marginBottom: '1rem' }}>
-        <div className="form-group">
-          <label className="form-label">Footage Duration (approx)</label>
-          <input type="text" name="footageDuration" className="form-input" placeholder="e.g. 15 mins" value={formData.footageDuration} onChange={handleChange} />
-        </div>
-        <div className="form-group">
-          <label className="form-label">Export Format</label>
-          <select name="exportFormat" className="form-select" value={formData.exportFormat} onChange={handleChange} required>
-            <option value="mp4">MP4</option>
-            <option value="avi">AVI</option>
-            <option value="mkv">MKV</option>
-            <option value="other">Other</option>
-          </select>
-        </div>
-      </div>
+            <div className="form-group" style={{ marginBottom: '1rem' }}>
+              <label className="form-label">Timeline Description</label>
+              <input type="text" className="form-input" placeholder="e.g. Suspect enters the building" value={timeline.description} onChange={e => handleTimelineChange(timeline.id, 'description', e.target.value)} required />
+            </div>
 
-      <div className="form-group" style={{ marginBottom: '1.5rem' }}>
-        <label className="form-label">Remarks</label>
-        <input type="text" name="remarks" className="form-input" value={formData.remarks} onChange={handleChange} />
+            <div className="form-group">
+              <label className="form-label">Upload Footage (Max 10MB total across all timelines)</label>
+              <div 
+                style={{ display: 'flex', alignItems: 'center', gap: '1rem', background: 'var(--color-bg-secondary)', padding: '0.75rem', borderRadius: '4px', border: '1px dashed var(--color-border)' }}
+              >
+                <input 
+                  type="file" 
+                  accept="video/*"
+                  onChange={e => {
+                    if (e.target.files && e.target.files.length > 0) {
+                      handleTimelineChange(timeline.id, 'file', e.target.files[0]);
+                    }
+                  }} 
+                  style={{ display: 'none' }}
+                  id={`file-${timeline.id}`}
+                />
+                <label htmlFor={`file-${timeline.id}`} className="btn btn-secondary btn-sm" style={{ cursor: 'pointer', flexShrink: 0 }}>
+                  <Video size={14} /> {timeline.file ? 'Change Video' : 'Attach Video'}
+                </label>
+                <span style={{ fontSize: '0.8125rem', color: timeline.file ? 'var(--color-text)' : 'var(--color-text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {timeline.file ? timeline.file.name : 'No video selected (optional)'}
+                </span>
+              </div>
+            </div>
+          </div>
+        ))}
       </div>
 
       <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
@@ -191,7 +220,7 @@ export default function PlaybackForm({ onSuccess, onCancel }: PlaybackFormProps)
           Cancel
         </button>
         <button type="submit" className="btn btn-primary" disabled={loading}>
-          {loading ? <Loader2 size={16} className="animate-spin" /> : 'Log Playback & Export'}
+          {loading ? <Loader2 size={16} className="animate-spin" /> : 'Log Playback & Upload'}
         </button>
       </div>
     </form>

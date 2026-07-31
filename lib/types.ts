@@ -60,67 +60,47 @@ export type IDType = 'national-id' | 'passport' | 'drivers-license' | 'voter-id'
 
 export interface Visitor extends BaseRecord {
   date: string;
-  timeIn: string;
-  timeOut?: string;
-  visitorName: string;
+  name: string;
+  address: string;
+  country: string;
   phoneNumber: string;
-  company: string;
-  personVisiting: string;
-  department: string;
-  purpose: string;
-  idType: IDType;
-  idNumber: string;
-  vehicleNumber?: string;
-  visitorPassNumber: string;
-  securityOfficer: string;
-  remarks?: string;
-  status: VisitorStatus;
-  photo?: string;
-  qrCode?: string;
+  adults: number;
+  kids: number;
+  kidsUnderSix: number;
+  total: number;
+  createdBy: string;
 }
-
-// ---------- Module 4: Tips Received ----------
-export type TipSource = 'anonymous' | 'staff' | 'visitor' | 'police' | 'public';
-export type TipCategory = 'theft' | 'suspicious-person' | 'fraud' | 'safety' | 'emergency' | 'other';
-export type Priority = 'low' | 'medium' | 'high' | 'critical';
-export type TipStatus = 'open' | 'investigating' | 'closed';
 
 export interface Tip extends BaseRecord {
   date: string;
-  time: string;
-  source: TipSource;
-  tipCategory: TipCategory;
-  description: string;
-  location: string;
-  priority: Priority;
-  assignedTo: string;
-  status: TipStatus;
-  attachment?: string;
-  officerRecording: string;
+  staffName: string;
+  tipAmount: number;
+  otherTip: string;
+  source: string;
+  hodName: string;
+  department: string;
+  createdBy: string;
 }
 
 // ---------- Module 5: Playback Upload ----------
-export type ExportFormat = 'mp4' | 'avi' | 'mkv' | 'other';
+export interface PlaybackTimeline {
+  _id?: string;
+  date: string;
+  time: string;
+  description: string;
+  videoData?: string; // base64
+  originalFileName?: string;
+  mimeType?: string;
+  size?: number;
+}
 
 export interface PlaybackEntry extends BaseRecord {
-  dateRequested: string;
-  timeRequested: string;
-  cameraNumber: string;
-  cameraLocation: string;
-  incidentDate: string;
-  incidentTime: string;
-  requestedBy: string;
-  department: string;
-  reason: string;
-  footageDuration: string;
-  exportFormat: ExportFormat;
-  storageLocation: string;
-  uploadedBy?: string;
-  uploadDate?: string;
+  title: string;
+  description: string;
   evidenceNumber: string;
-  remarks?: string;
-  playbackFile?: string;
-  screenshot?: string;
+  timelines: PlaybackTimeline[];
+  uploadedBy?: string; // user id
+  uploaderName?: string;
 }
 
 // ---------- Module 6: Incident Log ----------
@@ -210,6 +190,7 @@ export interface LostFoundEntry extends BaseRecord {
 
 // ---------- Module 11: Daily Occurrence Book ----------
 export type OBCategory = 'delivery' | 'visitor' | 'playback' | 'goods' | 'patrol' | 'tip' | 'shift' | 'incident' | 'equipment' | 'vehicle' | 'lost-found' | 'general';
+export type Priority = 'low' | 'medium' | 'high' | 'critical';
 
 export interface OBEntry extends BaseRecord {
   date: string;
@@ -241,7 +222,26 @@ export interface DocumentEntry extends BaseRecord {
   uploaderName?: string; // user name for display
 }
 
-// ---------- Module 13: Notifications ----------
+// ---------- Module 13: Filing ----------
+export interface FilingCategory {
+  _id?: string;
+  name: string;
+  createdBy: string;
+  createdAt?: string;
+}
+
+export interface FilingEntry extends BaseRecord {
+  categoryName: string;
+  generatedFileName: string;
+  originalFileName: string;
+  mimeType: string;
+  size: number;
+  fileData: string;
+  uploadedBy: string; // user id
+  uploaderName?: string; // user name for display
+}
+
+// ---------- Module 14: Notifications ----------
 export type NotificationType = 'visitor-overstay' | 'high-priority-tip' | 'incident-created' | 'playback-pending' | 'shift-handover-due' | 'general';
 
 export interface Notification {

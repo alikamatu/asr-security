@@ -10,6 +10,7 @@ import {
   PlayCircle,
   AlertTriangle,
   BookOpen,
+  Folder,
   ArrowRightLeft,
   Car,
   Wrench,
@@ -49,6 +50,7 @@ const NAV_GROUPS: NavGroup[] = [
     items: [
       { label: 'Received Goods', href: '/operations/goods', icon: <Package size={20} /> },
       { label: 'Documents', href: '/operations/documents', icon: <BookOpen size={20} /> },
+      { label: 'Filing', href: '/operations/filing', icon: <Folder size={20} /> },
       { label: 'Visitors', href: '/operations/visitors', icon: <Users size={20} /> },
       { label: 'Tips', href: '/operations/tips', icon: <Lightbulb size={20} /> },
       { label: 'Playback Upload', href: '/operations/playback', icon: <PlayCircle size={20} /> },

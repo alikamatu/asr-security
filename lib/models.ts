@@ -50,23 +50,14 @@ const GoodsEntrySchema = new Schema(
 const VisitorSchema = new Schema(
   {
     date: { type: String, required: true },
-    timeIn: { type: String, required: true },
-    timeOut: { type: String },
-    visitorName: { type: String, required: true },
-    phoneNumber: { type: String, required: true },
-    company: { type: String },
-    personVisiting: { type: String, required: true },
-    department: { type: String, required: true },
-    purpose: { type: String, required: true },
-    idType: { type: String, enum: ['national-id', 'passport', 'drivers-license', 'voter-id', 'other'] },
-    idNumber: { type: String },
-    vehicleNumber: { type: String },
-    visitorPassNumber: { type: String, required: true },
-    securityOfficer: { type: String, required: true },
-    remarks: { type: String },
-    status: { type: String, enum: ['inside', 'checked-out'], default: 'inside' },
-    photo: { type: String },
-    qrCode: { type: String },
+    name: { type: String, required: true },
+    address: { type: String, required: true },
+    country: { type: String, required: true },
+    phoneNumber: { type: String },
+    adults: { type: Number, required: true, default: 0 },
+    kids: { type: Number, required: true, default: 0 },
+    kidsUnderSix: { type: Number, required: true, default: 0 },
+    total: { type: Number, required: true, default: 0 },
     createdBy: { type: String, required: true },
   },
   { timestamps: true }
@@ -78,16 +69,12 @@ const VisitorSchema = new Schema(
 const TipSchema = new Schema(
   {
     date: { type: String, required: true },
-    time: { type: String, required: true },
-    source: { type: String, enum: ['anonymous', 'staff', 'visitor', 'police', 'public'], required: true },
-    tipCategory: { type: String, enum: ['theft', 'suspicious-person', 'fraud', 'safety', 'emergency', 'other'], required: true },
-    description: { type: String, required: true },
-    location: { type: String, required: true },
-    priority: { type: String, enum: ['low', 'medium', 'high', 'critical'], default: 'medium' },
-    assignedTo: { type: String },
-    status: { type: String, enum: ['open', 'investigating', 'closed'], default: 'open' },
-    attachment: { type: String },
-    officerRecording: { type: String, required: true },
+    staffName: { type: String, required: true },
+    tipAmount: { type: Number, required: true, default: 0 },
+    otherTip: { type: String },
+    source: { type: String, required: true },
+    hodName: { type: String, required: true },
+    department: { type: String, required: true },
     createdBy: { type: String, required: true },
   },
   { timestamps: true }
@@ -96,27 +83,24 @@ const TipSchema = new Schema(
 // ============================================================
 // Playback Entry Model
 // ============================================================
+const PlaybackTimelineSchema = new Schema({
+  date: { type: String, required: true },
+  time: { type: String, required: true },
+  description: { type: String, required: true },
+  videoData: { type: String }, // Base64 Data URI
+  originalFileName: { type: String },
+  mimeType: { type: String },
+  size: { type: Number },
+});
+
 const PlaybackEntrySchema = new Schema(
   {
-    dateRequested: { type: String, required: true },
-    timeRequested: { type: String, required: true },
-    cameraNumber: { type: String, required: true },
-    cameraLocation: { type: String, required: true },
-    incidentDate: { type: String, required: true },
-    incidentTime: { type: String, required: true },
-    requestedBy: { type: String, required: true },
-    department: { type: String },
-    reason: { type: String, required: true },
-    footageDuration: { type: String },
-    exportFormat: { type: String, enum: ['mp4', 'avi', 'mkv', 'other'], default: 'mp4' },
-    storageLocation: { type: String },
-    uploadedBy: { type: String },
-    uploadDate: { type: String },
+    title: { type: String, required: true },
+    description: { type: String, required: true },
     evidenceNumber: { type: String, required: true },
-    remarks: { type: String },
-    playbackFile: { type: String },
-    screenshot: { type: String },
-    createdBy: { type: String, required: true },
+    timelines: [PlaybackTimelineSchema],
+    uploadedBy: { type: String, required: true },
+    uploaderName: { type: String },
   },
   { timestamps: true }
 );
@@ -289,13 +273,38 @@ const ActivityLogSchema = new Schema(
 );
 
 // ============================================================
+// Filing Module Models
+// ============================================================
+const FilingCategorySchema = new Schema(
+  {
+    name: { type: String, required: true, unique: true },
+    createdBy: { type: String, required: true },
+  },
+  { timestamps: true }
+);
+
+const FilingEntrySchema = new Schema(
+  {
+    categoryName: { type: String, required: true },
+    generatedFileName: { type: String, required: true },
+    originalFileName: { type: String, required: true },
+    mimeType: { type: String, required: true },
+    size: { type: Number, required: true },
+    fileData: { type: String, required: true }, // Base64
+    uploadedBy: { type: String, required: true },
+    uploaderName: { type: String },
+  },
+  { timestamps: true }
+);
+
+// ============================================================
 // Model Exports (with existing model check for hot reload)
 // ============================================================
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 // Force clear models in development to prevent schema caching issues
 if (process.env.NODE_ENV !== 'production') {
-  const modelsToClear = ['User', 'GoodsEntry', 'Visitor', 'Tip', 'PlaybackEntry', 'Incident', 'ShiftHandover', 'Equipment', 'Vehicle', 'LostFound', 'OBEntry', 'ActivityLog', 'DocumentEntry'];
+  const modelsToClear = ['User', 'GoodsEntry', 'Visitor', 'Tip', 'PlaybackEntry', 'Incident', 'ShiftHandover', 'Equipment', 'Vehicle', 'LostFound', 'OBEntry', 'ActivityLog', 'DocumentEntry', 'FilingCategory', 'FilingEntry'];
   for (const modelName of modelsToClear) {
     delete (mongoose.connection.models as any)[modelName];
     delete (mongoose.models as any)[modelName];
@@ -315,4 +324,6 @@ export const LostFoundModel: Model<any> = mongoose.models.LostFound || mongoose.
 export const OBEntryModel: Model<any> = mongoose.models.OBEntry || mongoose.model('OBEntry', OBEntrySchema);
 export const ActivityLogModel: Model<any> = mongoose.models.ActivityLog || mongoose.model('ActivityLog', ActivityLogSchema);
 export const DocumentEntryModel: Model<any> = mongoose.models.DocumentEntry || mongoose.model('DocumentEntry', DocumentEntrySchema);
+export const FilingCategoryModel: Model<any> = mongoose.models.FilingCategory || mongoose.model('FilingCategory', FilingCategorySchema);
+export const FilingEntryModel: Model<any> = mongoose.models.FilingEntry || mongoose.model('FilingEntry', FilingEntrySchema);
 /* eslint-enable @typescript-eslint/no-explicit-any */
