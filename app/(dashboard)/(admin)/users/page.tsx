@@ -185,7 +185,7 @@ export default function UsersPage() {
     setIsDeleteModalOpen(true);
   };
 
-  if (currentUser?.role !== 'admin' && currentUser?.role !== 'manager') {
+  if (currentUser?.role !== 'admin' && currentUser?.role !== 'manager' && currentUser?.role !== 'superadmin') {
     return (
       <div className="card" style={{ textAlign: 'center', padding: '4rem 2rem' }}>
         <ShieldAlert size={48} style={{ color: 'var(--color-danger)', margin: '0 auto 1rem' }} />
