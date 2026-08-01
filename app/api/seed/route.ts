@@ -5,11 +5,7 @@ import { UserModel } from '@/lib/models';
 
 // Seed default users for development
 const DEFAULT_USERS = [
-  { name: 'Admin User', email: 'admin@aquasafari.com', password: 'admin123', role: 'admin', department: 'Administration', signatureCode: '10001' },
-  { name: 'John Mensah', email: 'john@aquasafari.com', password: 'officer123', role: 'officer', department: 'Control Room', signatureCode: '10002' },
-  { name: 'Grace Osei', email: 'grace@aquasafari.com', password: 'officer123', role: 'officer', department: 'Control Room', signatureCode: '10003' },
-  { name: 'Kwame Asante', email: 'kwame@aquasafari.com', password: 'supervisor123', role: 'supervisor', department: 'Operations', signatureCode: '10004' },
-  { name: 'Ama Darko', email: 'ama@aquasafari.com', password: 'manager123', role: 'manager', department: 'Management', signatureCode: '10005' },
+  { name: 'Osama Alikamatu', email: 'osama@aquasafari.com', password: 'Ronaldo@2007', role: 'admin', department: 'Administration', signatureCode: '10001' },
 ];
 
 export async function POST() {
