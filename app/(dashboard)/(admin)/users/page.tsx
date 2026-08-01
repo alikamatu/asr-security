@@ -23,7 +23,7 @@ export default function UsersPage() {
   });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
-  
+
   // Edit & Delete State
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -45,7 +45,7 @@ export default function UsersPage() {
   };
 
   useEffect(() => {
-    if (currentUser?.role === 'admin' || currentUser?.role === 'manager') {
+    if (currentUser?.role === 'admin' || currentUser?.role === 'manager' || currentUser?.role === 'superadmin') {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       void fetchUsers();
     }
@@ -95,7 +95,7 @@ export default function UsersPage() {
   const handleEditSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedUser?._id) return;
-    
+
     setSaving(true);
     setError('');
 
@@ -235,10 +235,10 @@ export default function UsersPage() {
             item.role === 'admin'
               ? 'critical'
               : item.role === 'manager'
-              ? 'high'
-              : item.role === 'supervisor'
-              ? 'medium'
-              : 'low'
+                ? 'high'
+                : item.role === 'supervisor'
+                  ? 'medium'
+                  : 'low'
           }
           size="sm"
         />
@@ -285,7 +285,7 @@ export default function UsersPage() {
       label: 'Actions',
       render: (item) => (
         <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
-          <button 
+          <button
             className="btn btn-ghost btn-sm"
             style={{ padding: '0.25rem 0.5rem' }}
             onClick={(e) => {
@@ -295,7 +295,7 @@ export default function UsersPage() {
           >
             Edit
           </button>
-          <button 
+          <button
             className="btn btn-ghost btn-sm"
             style={{ padding: '0.25rem 0.5rem', color: 'var(--color-danger)' }}
             onClick={(e) => {
@@ -630,27 +630,27 @@ export default function UsersPage() {
         title="Saying Goodbye! 👋"
       >
         <div style={{ textAlign: 'center', padding: '1rem' }}>
-          <div 
-            style={{ 
-              width: 64, 
-              height: 64, 
-              background: 'var(--color-danger-bg)', 
-              color: 'var(--color-danger)', 
-              borderRadius: '50%', 
-              display: 'flex', 
-              alignItems: 'center', 
+          <div
+            style={{
+              width: 64,
+              height: 64,
+              background: 'var(--color-danger-bg)',
+              color: 'var(--color-danger)',
+              borderRadius: '50%',
+              display: 'flex',
+              alignItems: 'center',
               justifyContent: 'center',
               margin: '0 auto 1.5rem'
             }}
           >
             <ShieldAlert size={32} />
           </div>
-          
+
           <h3 style={{ fontSize: '1.25rem', marginBottom: '0.5rem' }}>
             Are you absolutely sure?
           </h3>
           <p style={{ color: 'var(--color-text-muted)', marginBottom: '1.5rem', lineHeight: 1.5 }}>
-            You are about to permanently delete <strong>{selectedUser?.name}</strong> from the system.<br/><br/>
+            You are about to permanently delete <strong>{selectedUser?.name}</strong> from the system.<br /><br />
             <span style={{ fontSize: '0.875rem' }}>
               (Don't worry! Any goods they received or logs they created will safely remain intact in the system archives.)
             </span>
