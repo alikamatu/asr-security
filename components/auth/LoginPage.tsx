@@ -181,7 +181,7 @@ export default function LoginPage() {
         </form>
 
         {/* Seed button for first-time setup */}
-        <div
+        {/* <div
           style={{
             marginTop: '1.5rem',
             paddingTop: '1.5rem',
@@ -216,7 +216,7 @@ export default function LoginPage() {
               </>
             )}
           </button>
-        </div>
+        </div> */}
 
         {/* Footer */}
         <p
